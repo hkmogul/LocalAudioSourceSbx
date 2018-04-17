@@ -35,8 +35,8 @@ public:
 
 private:
     //==============================================================================
-    // Your private member variables go here...
-	std::map<int, SpatialAudio::LocalAudioSource> audioSourceRegistry;
+	// have a map of the ID for each audioSourceRegistry, and the corresponding image component for it
+	std::map<int, std::tuple<ImageComponent,SpatialAudio::LocalAudioSource>> audioSourceRegistry;
 	SpatialAudio::Avatar player;
 	ImageComponent arrow;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

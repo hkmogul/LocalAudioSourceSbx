@@ -24,8 +24,15 @@ MainComponent::MainComponent()
 
 	addAndMakeVisible(arrow);
 	// get position based on relative bounds
+	arrow.setImage(player.img());
 
 	
+	// lets see if it will let us use filechooser in the constructor
+	FileChooser chooser("Select a JSON file to play...", File::nonexistent, "*.json");
+	if (chooser.browseForFileToOpen())
+	{
+		File file(chooser.getResult());
+	}
 
 	resized();
 }
@@ -86,10 +93,8 @@ void MainComponent::resized()
 	m << "X is " << pos.getX() << " and Y is " << pos.getY();
 	Logger::getCurrentLogger()->writeToLog(m);
 	// should only attempt this if a rotation was done
-	arrow.setImage(player.img());
 	arrow.setBoundsRelative(pos.getX(), pos.getY(), 0.05f, 0.05f);
 	auto bounds = arrow.getBounds();
-
 	arrow.setTransform(AffineTransform::identity.rotated(degreesToRadians(player.theta()), bounds.getCentreX(), bounds.getCentreY()));
 
 

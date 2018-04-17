@@ -62,5 +62,5 @@ void SpatialAudio::Avatar::rotateCounterClockwise()
 
 Image& Avatar::img()
 {
-	return m_rotatedImage;
+	return m_img;
 }

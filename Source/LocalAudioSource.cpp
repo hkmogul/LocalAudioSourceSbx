@@ -100,7 +100,6 @@ LocalAudioSource::LocalAudioSource(
 		isReady = true; // everything else should be ok now- if image loading fails, will load default bitmap
 
 		m_img = ImageFileFormat::loadFrom(m_imageFileName);
-		m_imgCpt.setImage(m_img);
 	}
 	catch (exception& e)
 	{
@@ -119,12 +118,10 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 		float distRatio = m_distance / m_radius; // ranges from 0 to 1.  the closer it is (lower distanceRatio, we want a higher gain)
 		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
 
-		// convert to degrees, mod by 360, add offset from 
 		float thetaRadians = m_position.getAngleToPoint(avatarPosition);
-
-		// get angle to point 
-		float thetaTemp = ((int)(m_position.getAngleToPoint(avatarPosition) * RAD2DEGSCALE) % 360) + theta;
-		int thetaInd = round(thetaTemp * ONEOVERFIFTEEN);
+		int thetaDegrees = (int)radiansToDegrees(thetaRadians);
+		float thetaTemp = ((int)(thetaDegrees + theta) % 360);
+		int thetaInd = round(thetaTemp * ONEOVERFIFTEEN); 
 		if (thetaInd != currentThetaInd)
 		{
 			// TODO: update impulse responses
