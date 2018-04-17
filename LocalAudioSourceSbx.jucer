@@ -3,6 +3,7 @@
 <JUCERPROJECT name="LocalAudioSourceSbx" projectType="guiapp" jucerVersion="5.3.1">
   <MAINGROUP id="bYPIHC" name="LocalAudioSourceSbx">
     <GROUP id="{3DD80EB9-AD48-2DCD-4212-104B7A4CF1B6}" name="Source">
+      <FILE id="XQJwY4" name="Avatar.cpp" compile="1" resource="0" file="Source/Avatar.cpp"/>
       <FILE id="tT6hUQ" name="Avatar.h" compile="0" resource="0" file="Source/Avatar.h"/>
       <FILE id="pz6rTt" name="LocalAudioSource.cpp" compile="1" resource="0"
             file="Source/LocalAudioSource.cpp"/>

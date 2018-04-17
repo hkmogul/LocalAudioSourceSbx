@@ -9,7 +9,7 @@
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "../Source/LocalAudioSource.h"
+#include "LocalAudioSource.h"
 #include "Avatar.h"
 #include <map>
 //==============================================================================
@@ -37,6 +37,6 @@ private:
     //==============================================================================
     // Your private member variables go here...
 	std::map<int, SpatialAudio::LocalAudioSource> audioSourceRegistry;
-	//SpatialAudio::Avatar player;
+	SpatialAudio::Avatar player;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
