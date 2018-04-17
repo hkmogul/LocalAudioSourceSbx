@@ -20,7 +20,6 @@ namespace SpatialAudio
 
 		// detects if the avatar is in range.  sets the internal flag for it
 		// NB: this should ONLY be called of the player location/orientation changes
-		bool objectInRange(float x, float y, float theta);
 		bool objectInRange(Point<float> avatarPosition, float theta);
 		// just get the property.  do this if position has not changed
 		bool objectInRange() { return inRange; };
@@ -34,17 +33,16 @@ namespace SpatialAudio
 
 	private:
 		//juce::ImageCache m_img;
+		juce::Image m_img;
 		AudioFormatManager m_formatManager;
 		ScopedPointer<AudioFormatReaderSource> m_readerSource;
 		AudioTransportSource m_transportSource;
-		juce::dsp::Convolution m_spatialImpulseResponseLeft;
-		juce::dsp::Convolution m_spatialImpulseResponseRight;
-		juce::dsp::Convolution m_filterImpulseResponse;
+		juce::dsp::FIR::Filter<float> m_spatialImpulseResponseLeft;
+		juce::dsp::FIR::Filter<float> m_spatialImpulseResponseRight;
+		juce::dsp::FIR::Filter<float> m_filterImpulseResponse;
 		juce::String m_imageFileName;
 		juce::String m_audioFileName;
 		Point<float> m_position;
-		float m_xPosition;
-		float m_yPosition;
 		int m_id;
 		float m_gain;
 		float m_radius;
@@ -57,8 +55,5 @@ namespace SpatialAudio
 
 		juce::dsp::FIR::Filter<float> m_lFIR;
 		juce::dsp::FIR::Filter<float> m_rFIR;
-
-
-		float calculateTheta(float x, float y, float theta, int& thetaInd);
 	};
 }

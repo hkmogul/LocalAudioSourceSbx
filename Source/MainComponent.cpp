@@ -7,7 +7,7 @@
 */
 
 #include "MainComponent.h"
-
+using namespace SpatialAudio;
 //==============================================================================
 MainComponent::MainComponent()
 {
@@ -17,8 +17,15 @@ MainComponent::MainComponent()
 
     // specify the number of input and output channels that we want to open
     setAudioChannels (0, 2);
-
+	
 	// read from the JSON and register the different LocalAudioSource objects
+
+	player = Avatar(0.5f, 0.5f, 0.01, 0.0f);
+	auto arrowIm= ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
+	arrow.setImage(arrowIm);
+	addAndMakeVisible(arrow);
+
+	resized();
 }
 
 MainComponent::~MainComponent()
@@ -72,4 +79,10 @@ void MainComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
+	auto pos = player.getPosition();
+	String m;
+	m << "X is " << pos.getX() << " and Y is " << pos.getY();
+	Logger::getCurrentLogger()->writeToLog(m);
+	arrow.setBoundsRelative(pos.getX(), pos.getY(), 0.05f, 0.05f);
+
 }

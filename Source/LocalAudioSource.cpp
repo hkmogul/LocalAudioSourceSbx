@@ -70,7 +70,7 @@ LocalAudioSource::LocalAudioSource(
 	float xPos, 
 	float yPos, 
 	float radius, 
-	int id) : m_id(id), m_audioFileName(audioFileName), m_imageFileName(imageFileName), m_xPosition(xPos), m_yPosition(yPos), m_radius(radius), m_position(xPos,yPos)
+	int id) : m_id(id), m_audioFileName(audioFileName), m_imageFileName(imageFileName), m_radius(radius), m_position(xPos,yPos)
 {
 
 	// do all the audio opening parts
@@ -99,7 +99,7 @@ LocalAudioSource::LocalAudioSource(
 
 		isReady = true; // everything else should be ok now- if image loading fails, will load default bitmap
 
-		// TODO: image opening parts
+		m_img = ImageFileFormat::loadFrom(m_imageFileName);
 	}
 	catch (exception& e)
 	{
@@ -109,33 +109,6 @@ LocalAudioSource::LocalAudioSource(
 
 }
 
-bool SpatialAudio::LocalAudioSource::objectInRange(float x, float y, float theta)
-{
-	// use Euclidean distance 
-	m_distance = sqrtf(pow(x - m_xPosition, 2) + pow(y - m_yPosition, 2));
-	if (m_distance <= m_radius)
-	{
-		// true! set gain based on this
-		float distRatio = m_distance / m_radius; // ranges from 0 to 1.  the closer it is (lower distanceRatio, we want a higher gain)
-		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
-
-		// calculate theta - use theta to load the correct FIR filters for left and right channels (round to nearest 15 degrees)
-		// this function should and will be called asynchronously across all channels
-		int thetaInd;
-		m_theta = calculateTheta(x, y, theta, thetaInd);
-		if (thetaInd != currentThetaInd)
-		{
-			// update impulse responses
-			currentThetaInd = thetaInd;
-		}
-		
-
-		return true;
-	}
-
-	m_gain = 0;
-	return false;
-}
 
 bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 {
@@ -146,6 +119,9 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
 
 		// convert to degrees, mod by 360, add offset from 
+		float thetaRadians = m_position.getAngleToPoint(avatarPosition);
+
+		// get angle to point 
 		float thetaTemp = ((int)(m_position.getAngleToPoint(avatarPosition) * RAD2DEGSCALE) % 360) + theta;
 		int thetaInd = round(thetaTemp * ONEOVERFIFTEEN);
 		if (thetaInd != currentThetaInd)
@@ -199,52 +175,4 @@ void LocalAudioSource::discardNextAudioBlock(int numSamples)
 	AudioSampleBuffer buffer(1, numSamples);
 	AudioSourceChannelInfo buff(buffer);
 	m_transportSource.getNextAudioBlock(buff);
-}
-
-float LocalAudioSource::calculateTheta(float x, float y, float theta, int& thetaInd)
-{
-	// different branch based on relative quadrant
-	auto relativeX = m_xPosition - x;
-	auto relativeY = m_yPosition - y;
-	float thetaTemp = atan2f(relativeX, relativeY) * RAD2DEGSCALE;
-	if (relativeX >= 0)
-	{
-		// quadrant I or IV
-		if (relativeY >= 0)
-		{
-			// Quadrant I
-			// do nothing
-		}
-		else
-		{
-			// Quadrant IV
-			thetaTemp += 180;
-		}
-	}
-	else
-	{
-		// quadrant II or III
-		if (relativeY >= 0)
-		{
-			// Quadrant II
-			thetaTemp = 360 - thetaTemp;
-		}
-		else
-		{
-			// Quadrant III
-			thetaTemp += 180;
-		}
-	}
-
-	// USE AVATAR THETA TO SHIFT
-	thetaTemp -= theta;
-
-	// mod it so its in the correct orientation
-	thetaTemp = int(thetaTemp) % 360;
-
-	// round to nearest 15 degrees
-	thetaInd = round(thetaTemp * ONEOVERFIFTEEN);
-	thetaTemp = thetaInd * 15;
-
-	return thetaTemp;
 }

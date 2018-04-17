@@ -24,7 +24,6 @@ Avatar::Avatar(float xInit, float yInit, float velocity, float thetaInit)
 
 void SpatialAudio::Avatar::moveD()
 {
-	// backwards along vector
 
 }
 
