@@ -34,6 +34,8 @@ MainComponent::MainComponent()
 		File file(chooser.getResult());
 	}
 
+
+	getTopLevelComponent()->addKeyListener(this);
 	resized();
 }
 
@@ -72,6 +74,23 @@ void MainComponent::releaseResources()
     // restarted due to a setting change.
 
     // For more details, see the help for AudioProcessor::releaseResources()
+}
+
+bool MainComponent::keyPressed(const juce::KeyPress & key, juce::Component * originatingComponent)
+{
+	if (key.getKeyCode() == key.leftKey)
+	{
+		player.rotateCounterClockwise();
+	}
+	else if (key.getKeyCode() == key.rightKey)
+	{
+		player.rotateClockwise();
+	}
+
+	String m;
+	m << "Current angle is " << player.theta() << " degrees.";
+	Logger::getCurrentLogger()->writeToLog(m);
+	return true;
 }
 
 //==============================================================================

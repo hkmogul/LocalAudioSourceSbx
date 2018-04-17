@@ -3,6 +3,8 @@
 #include <math.h>
 #include <functional>
 #include <string>
+#include "leftIR.h"
+#include "rightIR.h"
 const char* L_AUDIOFILENAMEPROP = "AudioFile";
 const char* L_IMAGEFILENAMEPROP = "ImageFile";
 const char* L_XPOSITIONPROP = "XPosition";
@@ -100,6 +102,16 @@ LocalAudioSource::LocalAudioSource(
 		isReady = true; // everything else should be ok now- if image loading fails, will load default bitmap
 
 		m_img = ImageFileFormat::loadFrom(m_imageFileName);
+
+		// prepare the filter orders
+		dsp::ProcessSpec spec;
+		spec.numChannels = 1;
+		// TODO: sample rate and block size in constructor
+		m_lFIR.prepare(spec);
+		
+		m_rFIR.prepare(spec);
+
+		// CREATE UNITY IMPULSE RESPONSE
 	}
 	catch (exception& e)
 	{
@@ -119,13 +131,17 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
 
 		float thetaRadians = m_position.getAngleToPoint(avatarPosition);
-		int thetaDegrees = (int)radiansToDegrees(thetaRadians);
+		float thetaDegrees = radiansToDegrees(thetaRadians);
 		float thetaTemp = ((int)(thetaDegrees + theta) % 360);
 		int thetaInd = round(thetaTemp * ONEOVERFIFTEEN); 
 		if (thetaInd != currentThetaInd)
 		{
 			// TODO: update impulse responses
 			currentThetaInd = thetaInd;
+			size_t size = 30;
+			*(m_lFIR.coefficients) = dsp::FIR::Coefficients<float>(leftIR[currentThetaInd], (size_t) 30);
+			*(m_rFIR.coefficients) = dsp::FIR::Coefficients<float>(rightIR[currentThetaInd], (size_t)30);
+
 		}
 
 		return true;
