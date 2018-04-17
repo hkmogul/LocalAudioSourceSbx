@@ -100,6 +100,7 @@ LocalAudioSource::LocalAudioSource(
 		isReady = true; // everything else should be ok now- if image loading fails, will load default bitmap
 
 		m_img = ImageFileFormat::loadFrom(m_imageFileName);
+		m_imgCpt.setImage(m_img);
 	}
 	catch (exception& e)
 	{

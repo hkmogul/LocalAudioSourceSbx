@@ -32,8 +32,8 @@ namespace SpatialAudio
 		void discardNextAudioBlock(int numSamples); // if out of range, don't want it to skip around
 
 	private:
-		//juce::ImageCache m_img;
 		juce::Image m_img;
+		juce::ImageComponent m_imgCpt;
 		AudioFormatManager m_formatManager;
 		ScopedPointer<AudioFormatReaderSource> m_readerSource;
 		AudioTransportSource m_transportSource;

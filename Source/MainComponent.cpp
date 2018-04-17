@@ -20,10 +20,11 @@ MainComponent::MainComponent()
 	
 	// read from the JSON and register the different LocalAudioSource objects
 
-	player = Avatar(0.5f, 0.5f, 0.01, 0.0f);
-	auto arrowIm= ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
-	arrow.setImage(arrowIm);
+	player = Avatar(0.5f,0.5f,0.01f,45);
+
 	addAndMakeVisible(arrow);
+	arrow.setTransform(player.transform());
+	
 
 	resized();
 }
@@ -83,6 +84,10 @@ void MainComponent::resized()
 	String m;
 	m << "X is " << pos.getX() << " and Y is " << pos.getY();
 	Logger::getCurrentLogger()->writeToLog(m);
+	// should only attempt this if a rotation was done
+	arrow.setImage(player.img());
 	arrow.setBoundsRelative(pos.getX(), pos.getY(), 0.05f, 0.05f);
+
+
 
 }

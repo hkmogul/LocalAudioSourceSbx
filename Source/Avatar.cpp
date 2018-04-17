@@ -11,15 +11,21 @@
 #include "Avatar.h"
 using namespace SpatialAudio;
 using namespace std;
+
 Avatar::Avatar()
 {
-	Avatar(0.5, 0.5, 0.01, 0);
+	Avatar(0.5f, 0.5f, 0.01f, 0.0f);
 }
-
-Avatar::Avatar(float xInit, float yInit, float velocity, float thetaInit) 
+Avatar::Avatar(float xInit = 0.5f, float yInit = 0.5f, float velocity = 0.01f, float thetaInit = 0.0f) 
 	: xPos(xInit),yPos(yInit),vel(velocity), thetaPos(thetaInit), position(xInit, yInit)
 {
-	thetaVel = 10; // degrees
+	thetaVel = 15; // degrees
+
+	m_img = ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
+	
+	m_rotatedImage = ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
+	rotation = AffineTransform::identity;
+	rotation = rotation.rotated(degreesToRadians(thetaInit), xInit, yInit);
 }
 
 void SpatialAudio::Avatar::moveD()
@@ -44,10 +50,23 @@ void SpatialAudio::Avatar::rotateClockwise()
 {
 	thetaPos += thetaVel;
 	thetaPos = (int)thetaPos % 360;
+	float thetaRad = degreesToRadians(thetaPos);
+	// return the transform needed 
+	rotation = AffineTransform::rotation(thetaRad);
+	
 }
 
 void SpatialAudio::Avatar::rotateCounterClockwise()
 {
 	thetaPos -= thetaVel;
 	thetaPos = (int)thetaPos % 360;
+	float thetaRad = degreesToRadians(thetaPos);
+	// return the transform needed 
+	rotation =  AffineTransform::rotation(thetaRad);
+}
+
+
+Image& Avatar::img()
+{
+	return m_rotatedImage;
 }
