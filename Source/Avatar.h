@@ -1,5 +1,5 @@
 #pragma once
-
+#include <JuceHeader.h>
 
 namespace SpatialAudio
 {
@@ -15,7 +15,7 @@ namespace SpatialAudio
 		float x() {return xPos;};
 		float y() { return yPos; };
 		float theta() { return thetaPos; };
-
+		Point<float> getPosition() { return position; };
 		// setter methods
 		float x(float newX) { xPos = newX; };
 		float y(float newY) { yPos = newY; };
@@ -33,6 +33,7 @@ namespace SpatialAudio
 		void rotateCounterClockwise();
 
 	private:
+		Point<float> position;
 		float xPos;
 		float yPos;
 		float thetaPos;

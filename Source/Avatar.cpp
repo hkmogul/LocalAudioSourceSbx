@@ -13,10 +13,11 @@ using namespace SpatialAudio;
 using namespace std;
 Avatar::Avatar()
 {
+	Avatar(0.5, 0.5, 0.01, 0);
 }
 
 Avatar::Avatar(float xInit, float yInit, float velocity, float thetaInit) 
-	: xPos(xInit),yPos(yInit),vel(velocity), thetaPos(thetaInit)
+	: xPos(xInit),yPos(yInit),vel(velocity), thetaPos(thetaInit), position(xInit, yInit)
 {
 	thetaVel = 10; // degrees
 }

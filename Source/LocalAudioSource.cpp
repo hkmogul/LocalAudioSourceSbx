@@ -14,7 +14,7 @@ using namespace juce;
 using namespace std;
 using namespace SpatialAudio;
 static int global_id = 0;
-const float oneOverFifteen = 1.0f / 15.0f;
+const float ONEOVERFIFTEEN = 1.0f / 15.0f;
 const float RAD2DEGSCALE = 180.0 / 3.14159;
 LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> propertyDict)
 {
@@ -70,8 +70,9 @@ LocalAudioSource::LocalAudioSource(
 	float xPos, 
 	float yPos, 
 	float radius, 
-	int id) : m_id(id), m_audioFileName(audioFileName), m_imageFileName(imageFileName), m_xPosition(xPos), m_yPosition(yPos), m_radius(radius)
+	int id) : m_id(id), m_audioFileName(audioFileName), m_imageFileName(imageFileName), m_xPosition(xPos), m_yPosition(yPos), m_radius(radius), m_position(xPos,yPos)
 {
+
 	// do all the audio opening parts
 	File file(m_audioFileName);
 
@@ -128,6 +129,30 @@ bool SpatialAudio::LocalAudioSource::objectInRange(float x, float y, float theta
 			currentThetaInd = thetaInd;
 		}
 		
+
+		return true;
+	}
+
+	m_gain = 0;
+	return false;
+}
+
+bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
+{
+	m_distance = m_position.getDistanceFrom(avatarPosition);
+	if (m_distance <= m_radius)
+	{
+		float distRatio = m_distance / m_radius; // ranges from 0 to 1.  the closer it is (lower distanceRatio, we want a higher gain)
+		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
+
+		// convert to degrees, mod by 360, add offset from 
+		float thetaTemp = ((int)(m_position.getAngleToPoint(avatarPosition) * RAD2DEGSCALE) % 360) + theta;
+		int thetaInd = round(thetaTemp * ONEOVERFIFTEEN);
+		if (thetaInd != currentThetaInd)
+		{
+			// TODO: update impulse responses
+			currentThetaInd = thetaInd;
+		}
 
 		return true;
 	}
@@ -218,7 +243,7 @@ float LocalAudioSource::calculateTheta(float x, float y, float theta, int& theta
 	thetaTemp = int(thetaTemp) % 360;
 
 	// round to nearest 15 degrees
-	thetaInd = round(thetaTemp * oneOverFifteen);
+	thetaInd = round(thetaTemp * ONEOVERFIFTEEN);
 	thetaTemp = thetaInd * 15;
 
 	return thetaTemp;

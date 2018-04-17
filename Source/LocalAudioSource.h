@@ -21,7 +21,7 @@ namespace SpatialAudio
 		// detects if the avatar is in range.  sets the internal flag for it
 		// NB: this should ONLY be called of the player location/orientation changes
 		bool objectInRange(float x, float y, float theta);
-
+		bool objectInRange(Point<float> avatarPosition, float theta);
 		// just get the property.  do this if position has not changed
 		bool objectInRange() { return inRange; };
 
@@ -42,6 +42,7 @@ namespace SpatialAudio
 		juce::dsp::Convolution m_filterImpulseResponse;
 		juce::String m_imageFileName;
 		juce::String m_audioFileName;
+		Point<float> m_position;
 		float m_xPosition;
 		float m_yPosition;
 		int m_id;
