@@ -29,7 +29,6 @@ namespace SpatialAudio
 		// rotation (clockwise/counterclockwise)
 		void rotateClockwise();
 		void rotateCounterClockwise();
-		AffineTransform& transform() { return rotation; };
 		Image& img();
 	private:
 		Point<float> position;
@@ -40,6 +39,5 @@ namespace SpatialAudio
 		float thetaVel;
 		Image m_img; // base image
 		Image m_rotatedImage;
-		AffineTransform rotation;
 	};
 }

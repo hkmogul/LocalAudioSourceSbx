@@ -23,7 +23,8 @@ MainComponent::MainComponent()
 	player = Avatar(0.5f,0.5f,0.01f,45);
 
 	addAndMakeVisible(arrow);
-	arrow.setTransform(player.transform());
+	// get position based on relative bounds
+
 	
 
 	resized();
@@ -87,7 +88,9 @@ void MainComponent::resized()
 	// should only attempt this if a rotation was done
 	arrow.setImage(player.img());
 	arrow.setBoundsRelative(pos.getX(), pos.getY(), 0.05f, 0.05f);
+	auto bounds = arrow.getBounds();
 
+	arrow.setTransform(AffineTransform::identity.rotated(degreesToRadians(player.theta()), bounds.getCentreX(), bounds.getCentreY()));
 
 
 }

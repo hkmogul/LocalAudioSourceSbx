@@ -24,8 +24,6 @@ Avatar::Avatar(float xInit = 0.5f, float yInit = 0.5f, float velocity = 0.01f, f
 	m_img = ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
 	
 	m_rotatedImage = ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
-	rotation = AffineTransform::identity;
-	rotation = rotation.rotated(degreesToRadians(thetaInit), xInit, yInit);
 }
 
 void SpatialAudio::Avatar::moveD()
@@ -51,8 +49,6 @@ void SpatialAudio::Avatar::rotateClockwise()
 	thetaPos += thetaVel;
 	thetaPos = (int)thetaPos % 360;
 	float thetaRad = degreesToRadians(thetaPos);
-	// return the transform needed 
-	rotation = AffineTransform::rotation(thetaRad);
 	
 }
 
@@ -61,8 +57,6 @@ void SpatialAudio::Avatar::rotateCounterClockwise()
 	thetaPos -= thetaVel;
 	thetaPos = (int)thetaPos % 360;
 	float thetaRad = degreesToRadians(thetaPos);
-	// return the transform needed 
-	rotation =  AffineTransform::rotation(thetaRad);
 }
 
 
