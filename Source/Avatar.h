@@ -23,8 +23,6 @@ namespace SpatialAudio
 		// motion will be defined by LRUD/WASD, with rotation changing that
 		void moveD();
 		void moveU();
-		void moveL();
-		void moveR();
 
 		// rotation (clockwise/counterclockwise)
 		void rotateClockwise();

@@ -28,20 +28,15 @@ Avatar::Avatar(float xInit = 0.5f, float yInit = 0.5f, float velocity = 0.01f, f
 
 void SpatialAudio::Avatar::moveD()
 {
-
+	position.setX(position.getX() - vel * sin(degreesToRadians(thetaPos)));
+	position.setY(position.getY() + vel * cos(degreesToRadians(thetaPos)));
 }
 
 void SpatialAudio::Avatar::moveU()
 {
-}
-
-void SpatialAudio::Avatar::moveL()
-{
-}
-
-void SpatialAudio::Avatar::moveR()
-{
 	// find dx and dy components based on current angle
+	position.setX(position.getX() + vel * sin(degreesToRadians(thetaPos)));
+	position.setY(position.getY() - vel * cos(degreesToRadians(thetaPos)));
 }
 
 void SpatialAudio::Avatar::rotateClockwise()

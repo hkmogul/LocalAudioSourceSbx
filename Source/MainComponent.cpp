@@ -101,6 +101,14 @@ bool MainComponent::keyPressed(const juce::KeyPress & key, juce::Component * ori
 	{
 		player.rotateClockwise();
 	}
+	else if (key.getKeyCode() == key.upKey)
+	{
+		player.moveU();
+	}
+	else if (key.getKeyCode() == key.downKey)
+	{
+		player.moveD();
+	}
 
 	String m;
 	m << "Current angle is " << player.theta() << " degrees.";
