@@ -10,14 +10,17 @@ const char* L_IMAGEFILENAMEPROP = "ImageFile";
 const char* L_XPOSITIONPROP = "XPosition";
 const char* L_YPOSITIONPROP = "YPosition";
 const char* L_RADIUSPROP = "Radius";
-// TODO: filter effects?
 
 using namespace juce;
 using namespace std;
 using namespace SpatialAudio;
 static int global_id = 0;
 const float ONEOVERFIFTEEN = 1.0f / 15.0f;
-const float RAD2DEGSCALE = 180.0 / 3.14159;
+SpatialAudio::LocalAudioSource::LocalAudioSource()
+{
+	isReady = false;
+
+}
 LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> propertyDict)
 {
 	// parse props from LocalAudioSource, then initialize using other constructor
@@ -112,6 +115,7 @@ LocalAudioSource::LocalAudioSource(
 		m_rFIR.prepare(spec);
 
 		// CREATE UNITY IMPULSE RESPONSE
+
 	}
 	catch (exception& e)
 	{
@@ -119,6 +123,53 @@ LocalAudioSource::LocalAudioSource(
 		isReady = false;
 	}
 
+}
+
+LocalAudioSource::LocalAudioSource(const juce::var val)
+{
+	juce::String aFile = "";
+	juce::String iFile = "";
+	float x = -1.0;
+	float y = -1.0;
+	float r = -1.0;
+
+	if (!val[L_AUDIOFILENAMEPROP] != NULL)
+	{
+		aFile = val[L_AUDIOFILENAMEPROP].toString();
+	}
+
+	if (!val[L_IMAGEFILENAMEPROP] != NULL)
+	{
+		iFile = val[L_IMAGEFILENAMEPROP].toString();
+	}
+
+	if (!val[L_XPOSITIONPROP] != NULL)
+	{
+		x = val[L_XPOSITIONPROP];
+	}
+
+	if (!val[L_YPOSITIONPROP] != NULL)
+	{
+		y = val[L_YPOSITIONPROP];
+	}
+
+	if (!val[L_RADIUSPROP] != NULL)
+	{
+		r = val[L_RADIUSPROP];
+	}
+
+	// necessary components are xposition yposition and audio file names.  check if these are nonnull before passing to explicit constructor
+	if (aFile.isEmpty() || x < 0 || y < 0)
+	{
+		isReady = false;
+		return;
+	}
+	else
+	{
+		// use explicit constructor
+		// TODO: maybe UUIDs instead?
+		LocalAudioSource(aFile, iFile, x, y, r, global_id++);
+	}
 }
 
 
@@ -136,7 +187,6 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 		int thetaInd = round(thetaTemp * ONEOVERFIFTEEN); 
 		if (thetaInd != currentThetaInd)
 		{
-			// TODO: update impulse responses
 			currentThetaInd = thetaInd;
 			size_t size = 30;
 			*(m_lFIR.coefficients) = dsp::FIR::Coefficients<float>(leftIR[currentThetaInd], (size_t) 30);
@@ -175,7 +225,6 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 		m_rFIR.process(rContext);
 
 		// then process using whatever the distance based filter will be on the same contexts
-		// TODO: maybe processor chain?
 
 	}
 	else if (isReady)
@@ -189,4 +238,14 @@ void LocalAudioSource::discardNextAudioBlock(int numSamples)
 	AudioSampleBuffer buffer(1, numSamples);
 	AudioSourceChannelInfo buff(buffer);
 	m_transportSource.getNextAudioBlock(buff);
+}
+
+LocalAudioSource & SpatialAudio::LocalAudioSource::operator=(const LocalAudioSource & rhs)
+{
+	if (this == &rhs)
+	{
+		return *this;
+	}
+
+	return LocalAudioSource(this->audioFile(), this->imageFile(), this->position().getX(), this->position().getY(), this->radius(),this->id());
 }

@@ -3,7 +3,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include <map>
 
-
 namespace SpatialAudio
 {
 	/// Class to represent an audio source in space
@@ -12,11 +11,18 @@ namespace SpatialAudio
 	{
 
 	public:
+
+		// default constructor
+		LocalAudioSource();
 		// constructor using the serialized properties
 		LocalAudioSource(std::map<juce::String, juce::String> propertyDict);
 
 		// constructor using the raw properties
 		LocalAudioSource(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id);
+
+		// constructor using JsonCpp value
+		LocalAudioSource(const juce::var val);
+
 
 		// detects if the avatar is in range.  sets the internal flag for it
 		// NB: this should ONLY be called of the player location/orientation changes
@@ -31,14 +37,22 @@ namespace SpatialAudio
 
 		void discardNextAudioBlock(int numSamples); // if out of range, don't want it to skip around
 
+		int id() const {
+			return m_id;
+		};
+
+		juce::Image& img() { return m_img; };
+		juce::String& audioFile() { return m_audioFileName; };
+		juce::String& imageFile() { return m_imageFileName; };
+		Point<float>& position() { return m_position; };
+		float& radius() { return m_radius; };
+		LocalAudioSource& operator=(const LocalAudioSource& rhs);
+
 	private:
 		juce::Image m_img;
 		AudioFormatManager m_formatManager;
 		ScopedPointer<AudioFormatReaderSource> m_readerSource;
 		AudioTransportSource m_transportSource;
-		juce::dsp::FIR::Filter<float> m_spatialImpulseResponseLeft;
-		juce::dsp::FIR::Filter<float> m_spatialImpulseResponseRight;
-		juce::dsp::FIR::Filter<float> m_filterImpulseResponse;
 		juce::String m_imageFileName;
 		juce::String m_audioFileName;
 		Point<float> m_position;
