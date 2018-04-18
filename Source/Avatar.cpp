@@ -28,15 +28,20 @@ Avatar::Avatar(float xInit = 0.5f, float yInit = 0.5f, float velocity = 0.01f, f
 
 void SpatialAudio::Avatar::moveD()
 {
-	position.setX(position.getX() - vel * sin(degreesToRadians(thetaPos)));
-	position.setY(position.getY() + vel * cos(degreesToRadians(thetaPos)));
+	auto newX = position.getX() - vel * sin(degreesToRadians(thetaPos));
+	auto newY = position.getY() + vel * cos(degreesToRadians(thetaPos));
+	position.setX(newX > 0.96f ? 0.96f : newX < 0.0f ? 0.0f : newX);
+	position.setY(newY > 0.96f ? 0.96f : newY < 0.0f ? 0.0f : newY);
 }
 
 void SpatialAudio::Avatar::moveU()
 {
 	// find dx and dy components based on current angle
-	position.setX(position.getX() + vel * sin(degreesToRadians(thetaPos)));
-	position.setY(position.getY() - vel * cos(degreesToRadians(thetaPos)));
+	auto newX = position.getX() + vel * sin(degreesToRadians(thetaPos));
+	auto newY = position.getY() - vel * cos(degreesToRadians(thetaPos));
+	// why .96? well it seems like the right and bottom bounds of the window have some bezel to them
+	position.setX(newX > 0.96f ? 0.96f : newX < 0.0f ? 0.0f : newX);
+	position.setY(newY > 0.96f ? 0.96f : newY < 0.0f ? 0.0f : newY);
 }
 
 void SpatialAudio::Avatar::rotateClockwise()
