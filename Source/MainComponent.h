@@ -12,6 +12,8 @@
 #include "LocalAudioSource.h"
 #include "Avatar.h"
 #include <map>
+#include<vector>
+#include <tuple>
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -37,8 +39,13 @@ public:
 private:
     //==============================================================================
 	// have a map of the ID for each audioSourceRegistry, and the corresponding image component for it
-	std::map<int, SpatialAudio::LocalAudioSource> audioSourceRegistry;
+	//std::map<int, SpatialAudio::LocalAudioSource> audioSourceRegistry;
+	//juce::HashMap<int, SpatialAudio::LocalAudioSource> audioSourceRegistry;
+	std::vector<SpatialAudio::LocalAudioSource> audioSourceRegistry;
+	
 	SpatialAudio::Avatar player;
 	ImageComponent arrow;
+	//juce::Array<ImageComponent> images;
+	//juce::HashMap<int, ImageComponent*> images;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

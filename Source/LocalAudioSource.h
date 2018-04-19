@@ -47,6 +47,9 @@ namespace SpatialAudio
 		Point<float>& position() { return m_position; };
 		float& radius() { return m_radius; };
 		LocalAudioSource& operator=(const LocalAudioSource& rhs);
+		LocalAudioSource(LocalAudioSource& other);
+		void prepareFilters(double samplingRate, double samplesPerBlockExpected);
+		ScopedPointer<ImageComponent> m_imageComponent;
 
 	private:
 		juce::Image m_img;

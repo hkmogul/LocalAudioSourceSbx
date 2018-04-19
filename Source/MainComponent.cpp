@@ -7,7 +7,9 @@
 */
 
 #include "MainComponent.h"
-#include <fstream>
+//#include <fstream>
+#include <map>
+#include <vector>
 #define SOURCES_KEY "LocalizedSources"
 using namespace SpatialAudio;
 using namespace std;
@@ -28,6 +30,7 @@ MainComponent::MainComponent()
 	addAndMakeVisible(arrow);
 	// get position based on relative bounds
 	arrow.setImage(player.img());
+	
 
 	// read from the JSON and register the different LocalAudioSource objects
 	// lets see if it will let us use filechooser in the constructor
@@ -37,16 +40,35 @@ MainComponent::MainComponent()
 		File file(chooser.getResult());
 		auto root = JSON::parse(file);
 		auto allSources = root.getProperty(SOURCES_KEY, var()).getArray();
+		// initialize the imagecomponents array
+		int count = 0;
 		for (auto oneSource : *allSources)
 		{
 			// load the audio sources
-			LocalAudioSource temp(oneSource);
-			audioSourceRegistry[temp.id()] = temp;
+			audioSourceRegistry.push_back(LocalAudioSource(oneSource));
+			addAndMakeVisible((audioSourceRegistry.back().m_imageComponent));
+			count++;
 		}
 	}
+	else
+	{
+		// force creation of a default
 
+		//testSource.setImage(temp.img());
+	}
+	map<String, String> propMap;
+	propMap["AudioFile"] = "C:\JUCE\sbx\LocalAudioSourceSbx\Assets\defaultSong.mp3";
+	propMap["ImageFile"] = "C:\JUCE\sbx\LocalAudioSourceSbx\Assets\defaultImage.jpeg";
+	propMap["XPosition"] = "0.1";
+	propMap["YPosition"] = "0.7";
+	propMap["Radius"] = "0.2";
 
-	getTopLevelComponent()->addKeyListener(this);
+	//addAndMakeVisible(testSource);
+	audioSourceRegistry.push_back(LocalAudioSource(propMap));
+	addAndMakeVisible((audioSourceRegistry.back().m_imageComponent));
+	//images = Array<ImageComponent>()
+	
+	//getTopLevelComponent()->addKeyListener(this);
 	addKeyListener(this);
 	setWantsKeyboardFocus(true);
 
@@ -69,11 +91,20 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
     // but be careful - it will be called on the audio thread, not the GUI thread.
 
     // For more details, see the help for AudioProcessor::prepareToPlay()
+	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	{
+		iter->prepareFilters(sampleRate, samplesPerBlockExpected);
+	}
 }
 
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
 	// iterate through loaded LocalAudioSource map, find which are in range, add them to the buffers
+	vector<int> sourcesInRange;
+	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	{
+
+	}
     // Your audio-processing code goes here!
 
     // For more details, see the help for AudioProcessor::getNextAudioBlock()
@@ -89,6 +120,7 @@ void MainComponent::releaseResources()
     // restarted due to a setting change.
 
     // For more details, see the help for AudioProcessor::releaseResources()
+
 }
 
 bool MainComponent::keyPressed(const juce::KeyPress & key, juce::Component * originatingComponent)
@@ -149,5 +181,11 @@ void MainComponent::resized()
 	auto bounds = arrow.getBounds();
 	arrow.setTransform(AffineTransform::identity.rotated(degreesToRadians(player.theta()), bounds.getCentreX(), bounds.getCentreY()));
 
-
+	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	{
+		auto test = iter->m_imageComponent;
+		auto position = iter->position();
+		test->setBoundsRelative(position.getX(), position.getY(), 0.05f, 0.05f);
+	}
+	
 }

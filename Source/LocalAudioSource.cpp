@@ -77,6 +77,7 @@ LocalAudioSource::LocalAudioSource(
 	float radius, 
 	int id) : m_id(id), m_audioFileName(audioFileName), m_imageFileName(imageFileName), m_radius(radius), m_position(xPos,yPos)
 {
+	m_formatManager.registerBasicFormats();
 
 	// do all the audio opening parts
 	File file(m_audioFileName);
@@ -105,7 +106,7 @@ LocalAudioSource::LocalAudioSource(
 		isReady = true; // everything else should be ok now- if image loading fails, will load default bitmap
 
 		m_img = ImageFileFormat::loadFrom(m_imageFileName);
-
+		m_imageComponent->setImage(m_img);
 		// prepare the filter orders
 		dsp::ProcessSpec spec;
 		spec.numChannels = 1;
@@ -248,4 +249,17 @@ LocalAudioSource & SpatialAudio::LocalAudioSource::operator=(const LocalAudioSou
 	}
 
 	return LocalAudioSource(this->audioFile(), this->imageFile(), this->position().getX(), this->position().getY(), this->radius(),this->id());
+}
+
+LocalAudioSource::LocalAudioSource(LocalAudioSource & other)
+{
+	LocalAudioSource(this->audioFile(), this->imageFile(), this->position().getX(), this->position().getY(), this->radius(), this->id());
+}
+
+void SpatialAudio::LocalAudioSource::prepareFilters(double samplingRate, double samplesPerBlockExpected)
+{
+	dsp::ProcessSpec spec;
+	spec.numChannels = 1;
+	spec.maximumBlockSize = samplesPerBlockExpected;
+	spec.sampleRate = samplingRate;
 }
