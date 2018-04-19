@@ -57,7 +57,7 @@ MainComponent::MainComponent()
 	}
 	map<String, String> propMap;
 	propMap["AudioFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultSong.mp3";
-	propMap["ImageFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultImage.jpeg";
+	propMap["ImageFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultImage.jpg";
 	propMap["XPosition"] = "0.1";
 	propMap["YPosition"] = "0.7";
 	propMap["Radius"] = "0.2";

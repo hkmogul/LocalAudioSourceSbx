@@ -254,7 +254,14 @@ void SpatialAudio::LocalAudioSource::init(juce::String audioFileName, juce::Stri
 		isReady = true; // everything else should be ok now- if image loading fails, will load default bitmap
 		File imgFile = File(m_imageFileName);
 		// FOR NOW
-		m_img = ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
+		if (imgFile.existsAsFile())
+		{
+			m_img = ImageFileFormat::loadFrom(imgFile);
+		}
+		else
+		{
+			m_img = ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
+		}
 		
 		m_imageComponent = ScopedPointer<ImageComponent>(new ImageComponent);
 		m_imageComponent->setImage(m_img);
