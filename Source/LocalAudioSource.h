@@ -50,7 +50,7 @@ namespace SpatialAudio
 		LocalAudioSource(LocalAudioSource& other);
 		void prepareFilters(double samplingRate, double samplesPerBlockExpected);
 		ScopedPointer<ImageComponent> m_imageComponent;
-
+		void populateNextAudioBlock(float *lBuf, float* rBuf, int numSamples);
 	private:
 		juce::Image m_img;
 		AudioFormatManager m_formatManager;

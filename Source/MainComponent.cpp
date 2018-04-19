@@ -10,6 +10,7 @@
 #include <map>
 #include <vector>
 #include "constants.h"
+#include <functional>
 using namespace SpatialAudio;
 using namespace std;
 //==============================================================================
@@ -100,18 +101,58 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
 	// iterate through loaded LocalAudioSource map, find which are in range, add them to the buffers
-	vector<int> sourcesInRange;
+	bufferToFill.clearActiveBufferRegion();
+
+	vector<AudioSampleBuffer> leftSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
+	vector<AudioSampleBuffer> rightSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
+	vector<int> relevantIndices;
+	int sourceIndex = 0;
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
+		auto val = *iter;
+		if (val->objectInRange(player.getPosition(), player.theta()))
+		{
+			//Logger::getCurrentLogger()->writeToLog("OBJECT IN RANGE");
+			leftSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
+			rightSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
+			val->populateNextAudioBlock(leftSources[sourceIndex], rightSources[sourceIndex], bufferToFill.buffer->getNumSamples());
+			// mark this index as one to copy in
+			relevantIndices.push_back(sourceIndex);
+		}
+		else
+		{
+			val->discardNextAudioBlock(bufferToFill.buffer->getNumSamples());
+		}
+		sourceIndex++;
+
 
 	}
+
+
+	// asynchronously add these values in?
+	
+
+	if (sourceIndex > 0)
+	{
+		auto lPtr = bufferToFill.buffer->getWritePointer(0);
+		auto rPtr = bufferToFill.buffer->getWritePointer(1);
+		for (int i = 0; i < bufferToFill.buffer->getNumSamples(); i++)
+		{
+			for (auto it = relevantIndices.begin(); it != relevantIndices.end(); it++)
+			{
+				lPtr[i] += leftSources[*it].getReadPointer(0)[i];
+				//Logger::getCurrentLogger()->writeToLog(String(leftSources[*it].getReadPointer(0)[i]));
+				rPtr[i] += rightSources[*it].getReadPointer(0)[i];
+			}
+		}
+	}
+
     // Your audio-processing code goes here!
 
     // For more details, see the help for AudioProcessor::getNextAudioBlock()
 
     // Right now we are not producing any data, in which case we need to clear the buffer
     // (to prevent the output of random noise)
-    bufferToFill.clearActiveBufferRegion();
 }
 
 void MainComponent::releaseResources()

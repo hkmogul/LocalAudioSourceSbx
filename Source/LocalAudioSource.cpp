@@ -134,7 +134,9 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 	{
 		float distRatio = m_distance / m_radius; // ranges from 0 to 1.  the closer it is (lower distanceRatio, we want a higher gain)
 		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
-
+		String m;
+		m << "Gain is " << m_gain;
+		Logger::getCurrentLogger()->writeToLog(m);
 		float thetaRadians = m_position.getAngleToPoint(avatarPosition);
 		float thetaDegrees = radiansToDegrees(thetaRadians);
 		float thetaTemp = ((int)(thetaDegrees + theta) % 360);
@@ -155,14 +157,31 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 	return false;
 }
 
+void addToExistingBuffer(AudioSourceChannelInfo& bufferToFill)
+{
+	// assume that a buffer is cleared-nonnoise already
+
+}
+
+void LocalAudioSource::populateNextAudioBlock(float *lBuf, float* rBuf, int numSamples)
+{
+
+}
+
 void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, AudioSampleBuffer& rightBuffer, int numSamples)
 {
 	if (isReady && inRange)
 	{
 		// fill in one buffer from the transport source
-		AudioSourceChannelInfo info = AudioSourceChannelInfo();
+		AudioSourceChannelInfo info = AudioSourceChannelInfo(leftBuffer);
 		m_transportSource.getNextAudioBlock(info);
-		leftBuffer.copyFrom(0, 0, info.buffer->getReadPointer(0), numSamples);
+		// DELETE THIS SOON
+		auto p = leftBuffer.getReadPointer(0);
+		for (auto i = 0; i < numSamples; i++)
+		{
+			Logger::getCurrentLogger()->writeToLog(String(p[i]));
+		}
+		//leftBuffer.copyFrom(0, 0, info.buffer->getReadPointer(0), numSamples);
 		leftBuffer.applyGain(m_gain); // use commutative prop - only have to apply gain once
 
 		// copy right buffer data before applying HRTF
@@ -215,6 +234,7 @@ void SpatialAudio::LocalAudioSource::prepareFilters(double samplingRate, double 
 	spec.numChannels = 1;
 	spec.maximumBlockSize = samplesPerBlockExpected;
 	spec.sampleRate = samplingRate;
+	m_transportSource.start();
 }
 
 void SpatialAudio::LocalAudioSource::init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id)
