@@ -5,12 +5,11 @@
 
   ==============================================================================
 */
-
+#pragma once
 #include "MainComponent.h"
-//#include <fstream>
 #include <map>
 #include <vector>
-#define SOURCES_KEY "LocalizedSources"
+#include "constants.h"
 using namespace SpatialAudio;
 using namespace std;
 //==============================================================================
@@ -19,7 +18,6 @@ MainComponent::MainComponent()
 	audioSourceRegistry.clear();
     // Make sure you set the size of the component after
     // you add any child components.
-    setSize (800, 600);
 
     // specify the number of input and output channels that we want to open
     setAudioChannels (0, 2);
@@ -45,8 +43,9 @@ MainComponent::MainComponent()
 		for (auto oneSource : *allSources)
 		{
 			// load the audio sources
-			audioSourceRegistry.push_back(LocalAudioSource(oneSource));
-			addAndMakeVisible((audioSourceRegistry.back().m_imageComponent));
+			auto *temp = new LocalAudioSource(oneSource);
+			audioSourceRegistry.push_back(temp);
+			addAndMakeVisible((audioSourceRegistry.back()->m_imageComponent));
 			count++;
 		}
 	}
@@ -57,22 +56,23 @@ MainComponent::MainComponent()
 		//testSource.setImage(temp.img());
 	}
 	map<String, String> propMap;
-	propMap["AudioFile"] = "C:\JUCE\sbx\LocalAudioSourceSbx\Assets\defaultSong.mp3";
-	propMap["ImageFile"] = "C:\JUCE\sbx\LocalAudioSourceSbx\Assets\defaultImage.jpeg";
+	propMap["AudioFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultSong.mp3";
+	propMap["ImageFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultImage.jpeg";
 	propMap["XPosition"] = "0.1";
 	propMap["YPosition"] = "0.7";
 	propMap["Radius"] = "0.2";
 
 	//addAndMakeVisible(testSource);
-	audioSourceRegistry.push_back(LocalAudioSource(propMap));
-	addAndMakeVisible((audioSourceRegistry.back().m_imageComponent));
+	auto *temp = new LocalAudioSource(propMap);
+	audioSourceRegistry.push_back(temp);
+	addAndMakeVisible((audioSourceRegistry.back()->m_imageComponent.get()));
 	//images = Array<ImageComponent>()
 	
 	//getTopLevelComponent()->addKeyListener(this);
 	addKeyListener(this);
 	setWantsKeyboardFocus(true);
+	setSize(800, 600);
 
-	resized();
 }
 
 MainComponent::~MainComponent()
@@ -93,7 +93,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
     // For more details, see the help for AudioProcessor::prepareToPlay()
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
-		iter->prepareFilters(sampleRate, samplesPerBlockExpected);
+		(*iter)->prepareFilters(sampleRate, samplesPerBlockExpected);
 	}
 }
 
@@ -120,7 +120,13 @@ void MainComponent::releaseResources()
     // restarted due to a setting change.
 
     // For more details, see the help for AudioProcessor::releaseResources()
-
+	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	{
+		if (*iter != nullptr)
+		{
+			delete *iter;
+		}
+	}
 }
 
 bool MainComponent::keyPressed(const juce::KeyPress & key, juce::Component * originatingComponent)
@@ -165,6 +171,25 @@ void MainComponent::paint (Graphics& g)
 	auto bounds = arrow.getBounds();
 	arrow.setTransform(AffineTransform::identity.rotated(degreesToRadians(player.theta()), bounds.getCentreX(), bounds.getCentreY()));
 
+	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	{
+		auto val = *iter;
+		if (val == nullptr)
+		{
+			continue;
+		}
+		if (val->m_imageComponent != nullptr)
+		{
+			auto position = val->position();
+			auto test = val->m_imageComponent.get();
+			test->setBoundsRelative(position.getX(), position.getY(), 0.05f, 0.05f);
+		}
+		else
+		{
+			Logger::getCurrentLogger()->writeToLog("Thing didnt have shit");
+		}
+
+	}
 }
 
 void MainComponent::resized()
@@ -183,9 +208,18 @@ void MainComponent::resized()
 
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
-		auto test = iter->m_imageComponent;
-		auto position = iter->position();
-		test->setBoundsRelative(position.getX(), position.getY(), 0.05f, 0.05f);
+		auto val = *iter;
+		if (val->m_imageComponent != nullptr)
+		{
+			auto position = val->position();
+			auto test = val->m_imageComponent.get();
+			test->setBoundsRelative(position.getX(), position.getY(), 0.05f, 0.05f);
+		}
+		else
+		{
+			Logger::getCurrentLogger()->writeToLog("Thing didnt have shit");
+		}
+
 	}
 	
 }

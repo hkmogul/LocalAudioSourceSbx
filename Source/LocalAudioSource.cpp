@@ -1,4 +1,4 @@
-
+#pragma once
 #include "LocalAudioSource.h"
 #include <math.h>
 #include <functional>
@@ -10,7 +10,6 @@ const char* L_IMAGEFILENAMEPROP = "ImageFile";
 const char* L_XPOSITIONPROP = "XPosition";
 const char* L_YPOSITIONPROP = "YPosition";
 const char* L_RADIUSPROP = "Radius";
-
 using namespace juce;
 using namespace std;
 using namespace SpatialAudio;
@@ -41,17 +40,17 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 
 	if (propertyDict.find(L_RADIUSPROP) != propertyDict.end())
 	{
-		r = stof(propertyDict[L_RADIUSPROP].toRawUTF8());
+		r = propertyDict[L_RADIUSPROP].getFloatValue();
 	}
 
 	if (propertyDict.find(L_XPOSITIONPROP) != propertyDict.end())
 	{
-		x = stof(propertyDict[L_XPOSITIONPROP].toRawUTF8());
+		x = propertyDict[L_XPOSITIONPROP].getFloatValue();
 	}
 
 	if (propertyDict.find(L_YPOSITIONPROP) != propertyDict.end())
 	{
-		y = stof(propertyDict[L_YPOSITIONPROP].toRawUTF8());
+		y = propertyDict[L_YPOSITIONPROP].getFloatValue();
 	}
 
 	// necessary components are xposition yposition and audio file names.  check if these are nonnull before passing to explicit constructor
@@ -64,7 +63,7 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 	{
 		// use explicit constructor
 		// TODO: maybe UUIDs instead?
-		LocalAudioSource(aFile, iFile, x, y, r, global_id++);
+		init(aFile, iFile, x, y, r, global_id++);
 	}
 
 }
@@ -75,55 +74,9 @@ LocalAudioSource::LocalAudioSource(
 	float xPos, 
 	float yPos, 
 	float radius, 
-	int id) : m_id(id), m_audioFileName(audioFileName), m_imageFileName(imageFileName), m_radius(radius), m_position(xPos,yPos)
+	int id) 
 {
-	m_formatManager.registerBasicFormats();
-
-	// do all the audio opening parts
-	File file(m_audioFileName);
-
-	try
-	{
-		AudioFormatReader* reader = m_formatManager.createReaderFor(file);
-
-		// this will happen if the format manager can't handle this file
-		if (reader != nullptr)
-		{
-			ScopedPointer<AudioFormatReaderSource> newSource = new AudioFormatReaderSource(reader, true);
-			m_transportSource.setSource(newSource, 0, nullptr, reader->sampleRate);
-			m_readerSource = newSource.release();
-
-			// ABL - Always! Be! Looping!
-			m_readerSource->setLooping(true);
-		}
-		else
-		{
-			isReady = false;
-			// critical audio failure
-			return;
-		}
-
-		isReady = true; // everything else should be ok now- if image loading fails, will load default bitmap
-
-		m_img = ImageFileFormat::loadFrom(m_imageFileName);
-		m_imageComponent->setImage(m_img);
-		// prepare the filter orders
-		dsp::ProcessSpec spec;
-		spec.numChannels = 1;
-		// TODO: sample rate and block size in constructor
-		m_lFIR.prepare(spec);
-		
-		m_rFIR.prepare(spec);
-
-		// CREATE UNITY IMPULSE RESPONSE
-
-	}
-	catch (exception& e)
-	{
-		Logger::getCurrentLogger()->writeToLog(e.what());
-		isReady = false;
-	}
-
+	init(audioFileName, imageFileName, xPos, yPos, radius, id);
 }
 
 LocalAudioSource::LocalAudioSource(const juce::var val)
@@ -262,4 +215,57 @@ void SpatialAudio::LocalAudioSource::prepareFilters(double samplingRate, double 
 	spec.numChannels = 1;
 	spec.maximumBlockSize = samplesPerBlockExpected;
 	spec.sampleRate = samplingRate;
+}
+
+void SpatialAudio::LocalAudioSource::init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id)
+{
+	m_id = (id);
+	m_audioFileName = (audioFileName); 
+	m_imageFileName = (imageFileName);
+	m_radius = (radius); 
+	m_position = Point<float>(xPos, yPos);
+
+	m_formatManager.registerBasicFormats();
+
+	// do all the audio opening parts
+	File file(m_audioFileName);
+
+	try
+	{
+		AudioFormatReader* reader = m_formatManager.createReaderFor(file);
+
+		// this will happen if the format manager can't handle this file
+		if (reader != nullptr)
+		{
+			ScopedPointer<AudioFormatReaderSource> newSource = new AudioFormatReaderSource(reader, true);
+			m_transportSource.setSource(newSource, 0, nullptr, reader->sampleRate);
+			m_readerSource = newSource.release();
+
+			// ABL - Always! Be! Looping!
+			m_readerSource->setLooping(true);
+		}
+		else
+		{
+			isReady = false;
+			// critical audio failure
+			return;
+		}
+
+		isReady = true; // everything else should be ok now- if image loading fails, will load default bitmap
+		File imgFile = File(m_imageFileName);
+		// FOR NOW
+		m_img = ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
+		
+		m_imageComponent = ScopedPointer<ImageComponent>(new ImageComponent);
+		m_imageComponent->setImage(m_img);
+
+
+		// CREATE UNITY IMPULSE RESPONSE
+
+	}
+	catch (exception& e)
+	{
+		Logger::getCurrentLogger()->writeToLog(e.what());
+		isReady = false;
+	}
 }

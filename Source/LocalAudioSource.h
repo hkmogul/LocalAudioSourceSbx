@@ -23,7 +23,7 @@ namespace SpatialAudio
 		// constructor using JsonCpp value
 		LocalAudioSource(const juce::var val);
 
-
+		
 		// detects if the avatar is in range.  sets the internal flag for it
 		// NB: this should ONLY be called of the player location/orientation changes
 		bool objectInRange(Point<float> avatarPosition, float theta);
@@ -68,7 +68,7 @@ namespace SpatialAudio
 		bool isReady; // denotes if the audio files and images are properly loaded
 		bool inRange; // denotes the avatar is in range
 
-
+		void init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id);
 		juce::dsp::FIR::Filter<float> m_lFIR;
 		juce::dsp::FIR::Filter<float> m_rFIR;
 	};

@@ -41,7 +41,7 @@ private:
 	// have a map of the ID for each audioSourceRegistry, and the corresponding image component for it
 	//std::map<int, SpatialAudio::LocalAudioSource> audioSourceRegistry;
 	//juce::HashMap<int, SpatialAudio::LocalAudioSource> audioSourceRegistry;
-	std::vector<SpatialAudio::LocalAudioSource> audioSourceRegistry;
+	std::vector<SpatialAudio::LocalAudioSource*> audioSourceRegistry;
 	
 	SpatialAudio::Avatar player;
 	ImageComponent arrow;
