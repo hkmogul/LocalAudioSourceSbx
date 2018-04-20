@@ -28,7 +28,7 @@ namespace SpatialAudio
 		// NB: this should ONLY be called of the player location/orientation changes
 		bool objectInRange(Point<float> avatarPosition, float theta);
 		// just get the property.  do this if position has not changed
-		bool objectInRange() { return inRange; };
+		bool objectInRange() const { return inRange; };
 
 		// if position has not changed, but orientation has
 		//void updateHRTF(float theta);
@@ -41,11 +41,11 @@ namespace SpatialAudio
 			return m_id;
 		};
 
-		juce::Image& img() { return m_img; };
-		juce::String& audioFile() { return m_audioFileName; };
-		juce::String& imageFile() { return m_imageFileName; };
-		Point<float>& position() { return m_position; };
-		float& radius() { return m_radius; };
+		juce::Image img() const { return m_img; };
+		juce::String audioFile() const { return m_audioFileName; };
+		juce::String imageFile() const { return m_imageFileName; };
+		Point<float> position() const { return m_position; };
+		float radius() const { return m_radius; };
 		LocalAudioSource& operator=(const LocalAudioSource& rhs);
 		LocalAudioSource(LocalAudioSource& other);
 		void prepareFilters(double samplingRate, double samplesPerBlockExpected);

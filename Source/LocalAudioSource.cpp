@@ -170,17 +170,6 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 	return false;
 }
 
-void addToExistingBuffer(AudioSourceChannelInfo& bufferToFill)
-{
-	// assume that a buffer is cleared-nonnoise already
-
-}
-
-void LocalAudioSource::populateNextAudioBlock(float *lBuf, float* rBuf, int numSamples)
-{
-
-}
-
 void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, AudioSampleBuffer& rightBuffer, int numSamples)
 {
 	if (isReady && inRange)
@@ -265,12 +254,12 @@ LocalAudioSource & SpatialAudio::LocalAudioSource::operator=(const LocalAudioSou
 		return *this;
 	}
 
-	return LocalAudioSource(this->audioFile(), this->imageFile(), this->position().getX(), this->position().getY(), this->radius(),this->id());
+	this->init(rhs.audioFile(), rhs.imageFile(), rhs.position().getX(), rhs.position().getY(), rhs.radius(),rhs.id());
 }
 
 LocalAudioSource::LocalAudioSource(LocalAudioSource & other)
 {
-	LocalAudioSource(this->audioFile(), this->imageFile(), this->position().getX(), this->position().getY(), this->radius(), this->id());
+	init(other.audioFile(), other.imageFile(), other.position().getX(), other.position().getY(), other.radius(), other.id());
 }
 
 void SpatialAudio::LocalAudioSource::prepareFilters(double samplingRate, double samplesPerBlockExpected)

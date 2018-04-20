@@ -175,6 +175,7 @@ void MainComponent::releaseResources()
 
 bool MainComponent::keyPressed(const juce::KeyPress & key, juce::Component * originatingComponent)
 {
+	(void)originatingComponent; // block warnings
 	if (key.getKeyCode() == key.leftKey)
 	{
 		player.rotateCounterClockwise();
@@ -209,7 +210,7 @@ void MainComponent::paint (Graphics& g)
 	// should only attempt this if a rotation was done
 	arrow.setBoundsRelative(pos.getX(), pos.getY(), 0.05f, 0.05f);
 	auto bounds = arrow.getBounds();
-	arrow.setTransform(AffineTransform::identity.rotated(degreesToRadians(player.theta()), bounds.getCentreX(), bounds.getCentreY()));
+	arrow.setTransform(AffineTransform::identity.rotated(degreesToRadians(player.theta()), (float)bounds.getCentreX(), (float)bounds.getCentreY()));
 
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
@@ -242,7 +243,7 @@ void MainComponent::resized()
 	// should only attempt this if a rotation was done
 	arrow.setBoundsRelative(pos.getX(), pos.getY(), 0.05f, 0.05f);
 	auto bounds = arrow.getBounds();
-	arrow.setTransform(AffineTransform::identity.rotated(degreesToRadians(player.theta()), bounds.getCentreX(), bounds.getCentreY()));
+	arrow.setTransform(AffineTransform::identity.rotated(degreesToRadians(player.theta()), (float)bounds.getCentreX(), (float)bounds.getCentreY()));
 
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
