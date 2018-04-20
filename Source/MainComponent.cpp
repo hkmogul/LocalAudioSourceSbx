@@ -82,7 +82,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	propMap["ImageFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultImage.jpg";
 	propMap["XPosition"] = "0.1";
 	propMap["YPosition"] = "0.7";
-	propMap["Radius"] = "0.2";
+	propMap["Radius"] = "0.5";
 
 	//addAndMakeVisible(testSource);
 	auto *temp = new LocalAudioSource(propMap);
@@ -145,7 +145,6 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 			for (auto it = relevantIndices.begin(); it != relevantIndices.end(); it++)
 			{
 				lPtr[i] += leftSources[*it].getReadPointer(0)[i];
-				//Logger::getCurrentLogger()->writeToLog(String(leftSources[*it].getReadPointer(0)[i]));
 				rPtr[i] += rightSources[*it].getReadPointer(0)[i];
 			}
 		}
@@ -194,7 +193,6 @@ bool MainComponent::keyPressed(const juce::KeyPress & key, juce::Component * ori
 	}
 
 	String m;
-	m << "Current angle is " << player.theta() << " degrees.";
 	repaint();
 	Logger::getCurrentLogger()->writeToLog(m);
 	return true;
@@ -208,9 +206,6 @@ void MainComponent::paint (Graphics& g)
 
     // You can add your drawing code here!
 	auto pos = player.getPosition();
-	String m;
-	m << "X is " << pos.getX() << " and Y is " << pos.getY();
-	Logger::getCurrentLogger()->writeToLog(m);
 	// should only attempt this if a rotation was done
 	arrow.setBoundsRelative(pos.getX(), pos.getY(), 0.05f, 0.05f);
 	auto bounds = arrow.getBounds();
@@ -231,7 +226,6 @@ void MainComponent::paint (Graphics& g)
 		}
 		else
 		{
-			Logger::getCurrentLogger()->writeToLog("Thing didnt have shit");
 		}
 
 	}
@@ -244,7 +238,6 @@ void MainComponent::resized()
     // update their positions.
 	auto pos = player.getPosition();
 	String m;
-	m << "X is " << pos.getX() << " and Y is " << pos.getY();
 	Logger::getCurrentLogger()->writeToLog(m);
 	// should only attempt this if a rotation was done
 	arrow.setBoundsRelative(pos.getX(), pos.getY(), 0.05f, 0.05f);

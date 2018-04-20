@@ -48,7 +48,6 @@ void SpatialAudio::Avatar::rotateClockwise()
 {
 	thetaPos += thetaVel;
 	thetaPos = (int)thetaPos % 360;
-	float thetaRad = degreesToRadians(thetaPos);
 	
 }
 
@@ -56,7 +55,10 @@ void SpatialAudio::Avatar::rotateCounterClockwise()
 {
 	thetaPos -= thetaVel;
 	thetaPos = (int)thetaPos % 360;
-	float thetaRad = degreesToRadians(thetaPos);
+	if (thetaPos < 0)
+	{
+		thetaPos = 360 + thetaPos;
+	}
 }
 
 

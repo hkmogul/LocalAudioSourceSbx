@@ -140,14 +140,26 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 
 		float thetaRadians = m_position.getAngleToPoint(avatarPosition);
 		float thetaDegrees = radiansToDegrees(thetaRadians);
+		if (thetaDegrees < 0)
+		{
+			thetaDegrees = 360 + thetaDegrees;
+		}
 		float thetaTemp = ((int)(thetaDegrees + theta) % 360);
-		int thetaInd = round(thetaTemp * ONEOVERFIFTEEN); 
+		// to handle rollover
+		int thetaInd = (int)round(thetaTemp * ONEOVERFIFTEEN) % 24; 
 		if (thetaInd != currentThetaInd)
 		{
+			if (thetaInd < 0)
+			{
+				// break here
+				if (currentThetaInd < 0) {}
+			}
 			currentThetaInd = thetaInd;
-			size_t size = 30;
-			*(m_lFIR.coefficients) = dsp::FIR::Coefficients<float>(leftIR[currentThetaInd], (size_t) 30);
-			*(m_rFIR.coefficients) = dsp::FIR::Coefficients<float>(rightIR[currentThetaInd], (size_t)30);
+			String m;
+			m << "Current theta index is " << currentThetaInd << " , theta is " << thetaTemp; 
+			Logger::getCurrentLogger()->writeToLog(m);
+			*(m_lFIR.coefficients) = dsp::FIR::Coefficients<float>(leftIR[currentThetaInd], (size_t) L_IRLEN);
+			*(m_rFIR.coefficients) = dsp::FIR::Coefficients<float>(rightIR[currentThetaInd], (size_t)R_IRLEN);
 
 		}
 
