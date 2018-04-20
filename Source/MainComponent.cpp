@@ -31,6 +31,27 @@ MainComponent::MainComponent()
 	arrow.setImage(player.img());
 	
 
+
+	addAndMakeVisible((audioSourceRegistry.back()->m_imageComponent.get()));
+	//images = Array<ImageComponent>()
+	
+	//getTopLevelComponent()->addKeyListener(this);
+	addKeyListener(this);
+	setWantsKeyboardFocus(true);
+	setSize(800, 600);
+
+}
+
+MainComponent::~MainComponent()
+{
+    // This shuts down the audio device and clears the audio source.
+    shutdownAudio();
+}
+
+//==============================================================================
+void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+{
+	Logger::getCurrentLogger()->writeToLog("PREPARING TO PLAY");
 	// read from the JSON and register the different LocalAudioSource objects
 	// lets see if it will let us use filechooser in the constructor
 	FileChooser chooser("Select a JSON file to play...", File::nonexistent, "*.json");
@@ -57,7 +78,7 @@ MainComponent::MainComponent()
 		//testSource.setImage(temp.img());
 	}
 	map<String, String> propMap;
-	propMap["AudioFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultSong.mp3";
+	propMap["AudioFile"] = "C:\\Users\\hilar\\OneDrive\\School\\ComputerAudition\\Hilary_Mogul_HW3\\pop.wav";
 	propMap["ImageFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultImage.jpg";
 	propMap["XPosition"] = "0.1";
 	propMap["YPosition"] = "0.7";
@@ -66,25 +87,6 @@ MainComponent::MainComponent()
 	//addAndMakeVisible(testSource);
 	auto *temp = new LocalAudioSource(propMap);
 	audioSourceRegistry.push_back(temp);
-	addAndMakeVisible((audioSourceRegistry.back()->m_imageComponent.get()));
-	//images = Array<ImageComponent>()
-	
-	//getTopLevelComponent()->addKeyListener(this);
-	addKeyListener(this);
-	setWantsKeyboardFocus(true);
-	setSize(800, 600);
-
-}
-
-MainComponent::~MainComponent()
-{
-    // This shuts down the audio device and clears the audio source.
-    shutdownAudio();
-}
-
-//==============================================================================
-void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
-{
     // This function will be called when the audio device is started, or when
     // its settings (i.e. sample rate, block size, etc) are changed.
 
@@ -112,6 +114,8 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 		auto val = *iter;
 		if (val->objectInRange(player.getPosition(), player.theta()))
 		{
+			AudioSourceChannelInfo info = bufferToFill;
+			//val->populateNextAudioBlock(info);
 			//Logger::getCurrentLogger()->writeToLog("OBJECT IN RANGE");
 			leftSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
 			rightSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());

@@ -135,8 +135,9 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 		float distRatio = m_distance / m_radius; // ranges from 0 to 1.  the closer it is (lower distanceRatio, we want a higher gain)
 		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
 		String m;
-		m << "Gain is " << m_gain;
-		Logger::getCurrentLogger()->writeToLog(m);
+		//m << "Gain is " << m_gain;
+		m_transportSource.setGain(m_gain);
+
 		float thetaRadians = m_position.getAngleToPoint(avatarPosition);
 		float thetaDegrees = radiansToDegrees(thetaRadians);
 		float thetaTemp = ((int)(thetaDegrees + theta) % 360);
@@ -172,17 +173,15 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 {
 	if (isReady && inRange)
 	{
+		if (!m_transportSource.isPlaying())
+		{
+			
+			m_transportSource.start();
+		}
 		// fill in one buffer from the transport source
 		AudioSourceChannelInfo info = AudioSourceChannelInfo(leftBuffer);
+		info.buffer->setSize(1, numSamples, false, false, true);
 		m_transportSource.getNextAudioBlock(info);
-		// DELETE THIS SOON
-		auto p = leftBuffer.getReadPointer(0);
-		for (auto i = 0; i < numSamples; i++)
-		{
-			Logger::getCurrentLogger()->writeToLog(String(p[i]));
-		}
-		//leftBuffer.copyFrom(0, 0, info.buffer->getReadPointer(0), numSamples);
-		leftBuffer.applyGain(m_gain); // use commutative prop - only have to apply gain once
 
 		// copy right buffer data before applying HRTF
 		rightBuffer.copyFrom(0, 0, leftBuffer.getReadPointer(0), numSamples);
@@ -203,6 +202,40 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 	else if (isReady)
 	{
 		discardNextAudioBlock(numSamples);
+	}
+}
+
+void SpatialAudio::LocalAudioSource::populateNextAudioBlock(const AudioSourceChannelInfo & info)
+{
+	if (isReady && inRange)
+	{
+		if (!m_transportSource.isPlaying())
+		{
+
+			m_transportSource.start();
+		}
+		// fill in one buffer from the transport source
+		m_transportSource.getNextAudioBlock(info);
+		// turn these into blocks
+		float *lp = info.buffer->getWritePointer(0);
+		float *rp = info.buffer->getWritePointer(1);
+
+		dsp::AudioBlock<float> lBufBlock = dsp::AudioBlock<float>(&lp, 1, 0, info.buffer->getNumSamples());
+		dsp::AudioBlock<float> rBufBlock = dsp::AudioBlock<float>(&rp, 1, 0, info.buffer->getNumSamples());
+
+		// turn the blocks into destructive/in place processing contexts
+		dsp::ProcessContextReplacing<float> lContext(lBufBlock);
+		dsp::ProcessContextReplacing<float> rContext(rBufBlock);
+
+		m_lFIR.process(lContext);
+		m_rFIR.process(rContext);
+
+		// then process using whatever the distance based filter will be on the same contexts
+
+	}
+	else if (isReady)
+	{
+		discardNextAudioBlock(info.buffer->getNumSamples());
 	}
 }
 
@@ -234,10 +267,18 @@ void SpatialAudio::LocalAudioSource::prepareFilters(double samplingRate, double 
 	spec.numChannels = 1;
 	spec.maximumBlockSize = samplesPerBlockExpected;
 	spec.sampleRate = samplingRate;
+	m_transportSource.prepareToPlay(samplesPerBlockExpected, samplingRate);
+
 	m_transportSource.start();
 }
 
-void SpatialAudio::LocalAudioSource::init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id)
+void SpatialAudio::LocalAudioSource::init(
+	juce::String audioFileName, 
+	juce::String imageFileName, 
+	float xPos, 
+	float yPos, 
+	float radius, 
+	int id)
 {
 	m_id = (id);
 	m_audioFileName = (audioFileName); 

@@ -34,7 +34,7 @@ namespace SpatialAudio
 		//void updateHRTF(float theta);
 
 		void populateNextAudioBlock(AudioSampleBuffer& leftBuffer, AudioSampleBuffer& rightBuffer, int numSamples);
-
+		void populateNextAudioBlock(const AudioSourceChannelInfo& info);
 		void discardNextAudioBlock(int numSamples); // if out of range, don't want it to skip around
 
 		int id() const {
