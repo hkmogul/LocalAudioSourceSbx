@@ -144,7 +144,7 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 		{
 			thetaDegrees = 360 + thetaDegrees;
 		}
-		float thetaTemp = ((int)(thetaDegrees + theta) % 360);
+		int thetaTemp = ((int)(thetaDegrees + theta) % 360);
 		// to handle rollover
 		int thetaInd = (int)round(thetaTemp * ONEOVERFIFTEEN) % 24; 
 		if (thetaInd != currentThetaInd)
@@ -155,9 +155,9 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 				if (currentThetaInd < 0) {}
 			}
 			currentThetaInd = thetaInd;
-			String m;
-			m << "Current theta index is " << currentThetaInd << " , theta is " << thetaTemp; 
-			Logger::getCurrentLogger()->writeToLog(m);
+			String m1;
+			m1 << "Current theta index is " << currentThetaInd << " , theta is " << thetaTemp; 
+			Logger::getCurrentLogger()->writeToLog(m1);
 			*(m_lFIR.coefficients) = dsp::FIR::Coefficients<float>(leftIR[currentThetaInd], (size_t) L_IRLEN);
 			*(m_rFIR.coefficients) = dsp::FIR::Coefficients<float>(rightIR[currentThetaInd], (size_t)R_IRLEN);
 
@@ -255,6 +255,7 @@ LocalAudioSource & SpatialAudio::LocalAudioSource::operator=(const LocalAudioSou
 	}
 
 	this->init(rhs.audioFile(), rhs.imageFile(), rhs.position().getX(), rhs.position().getY(), rhs.radius(),rhs.id());
+	return *this;
 }
 
 LocalAudioSource::LocalAudioSource(LocalAudioSource & other)
@@ -266,9 +267,9 @@ void SpatialAudio::LocalAudioSource::prepareFilters(double samplingRate, double 
 {
 	dsp::ProcessSpec spec;
 	spec.numChannels = 1;
-	spec.maximumBlockSize = samplesPerBlockExpected;
+	spec.maximumBlockSize = (int)samplesPerBlockExpected;
 	spec.sampleRate = samplingRate;
-	m_transportSource.prepareToPlay(samplesPerBlockExpected, samplingRate);
+	m_transportSource.prepareToPlay((int)samplesPerBlockExpected, (int)samplingRate);
 
 	m_transportSource.start();
 }

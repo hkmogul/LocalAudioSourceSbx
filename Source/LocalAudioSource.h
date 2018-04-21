@@ -2,7 +2,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include <map>
-
 namespace SpatialAudio
 {
 	/// Class to represent an audio source in space

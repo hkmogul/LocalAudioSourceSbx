@@ -110,8 +110,12 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	// now that we have the registry, prepare them with the sample rate so the transport source doesn't fail
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
-		(*iter)->prepareFilters(sampleRate, samplesPerBlockExpected);
-		addAndMakeVisible((*iter)->m_imageComponent.get());
+		if (*iter != nullptr)
+		{
+			(*iter)->prepareFilters(sampleRate, samplesPerBlockExpected);
+			addAndMakeVisible((*iter)->m_imageComponent.get());
+		}
+
 	}
 }
 
@@ -124,7 +128,7 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 	rightSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
 	vector<int> relevantIndices;
 	// vector of async tasks to call?
-	vector<future<void>> calcTasks(audioSourceRegistry.size());
+	//vector<future<void>> calcTasks(audioSourceRegistry.size());
 	int sourceIndex = 0;
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
@@ -134,15 +138,12 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 
 			leftSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
 			rightSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
-			//calcTasks[sourceIndex] = async(launch::async, callPopulateFunction,val, leftSources, rightSources,sourceIndex, bufferToFill.buffer->getNumSamples());
-			//calcTasks[sourceIndex].valid();
 			val->populateNextAudioBlock(leftSources[sourceIndex], rightSources[sourceIndex], bufferToFill.buffer->getNumSamples());
 			// mark this index as one to copy in
 			relevantIndices.push_back(sourceIndex);
 		}
 		else
 		{
-			//calcTasks[sourceIndex] = async(launch::async, callDiscardFunction,val, bufferToFill.buffer->getNumSamples());
 			val->discardNextAudioBlock(bufferToFill.buffer->getNumSamples());
 		}
 		sourceIndex++;
@@ -155,8 +156,6 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 	//{
 	//	it.get();
 	//}
-
-	// asynchronously add these values in?
 	
 
 	if (sourceIndex > 0)
@@ -165,6 +164,7 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 		auto rPtr = bufferToFill.buffer->getWritePointer(1);
 		for (int i = 0; i < bufferToFill.buffer->getNumSamples(); i++)
 		{
+			// iterate through indices that would have values
 			for (auto it = relevantIndices.begin(); it != relevantIndices.end(); it++)
 			{
 				lPtr[i] += leftSources[*it].getReadPointer(0)[i];
@@ -237,6 +237,7 @@ void MainComponent::paint (Graphics& g)
 		auto val = *iter;
 		if (val == nullptr)
 		{
+			// this would happen if it failed to allocate the memory
 			continue;
 		}
 		if (val->m_imageComponent != nullptr)
