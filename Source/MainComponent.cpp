@@ -37,7 +37,6 @@ MainComponent::MainComponent()
 	
 
 
-	addAndMakeVisible((audioSourceRegistry.back()->m_imageComponent.get()));
 	//images = Array<ImageComponent>()
 	
 	//getTopLevelComponent()->addKeyListener(this);
@@ -112,6 +111,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
 		(*iter)->prepareFilters(sampleRate, samplesPerBlockExpected);
+		addAndMakeVisible((*iter)->m_imageComponent.get());
 	}
 }
 
@@ -247,6 +247,8 @@ void MainComponent::paint (Graphics& g)
 		}
 		else
 		{
+			Logger::getCurrentLogger()->writeToLog("IT HAS NO IMAGE?!?!");
+			// probably should paint a dot there
 		}
 
 	}
