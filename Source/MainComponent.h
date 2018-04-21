@@ -45,6 +45,8 @@ private:
 	
 	SpatialAudio::Avatar player;
 	ImageComponent arrow;
+	std::vector<AudioSampleBuffer> leftSources;
+	std::vector<AudioSampleBuffer> rightSources;
 	//juce::Array<ImageComponent> images;
 	//juce::HashMap<int, ImageComponent*> images;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
