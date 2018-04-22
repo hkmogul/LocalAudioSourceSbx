@@ -33,7 +33,6 @@ namespace SpatialAudio
 		//void updateHRTF(float theta);
 
 		void populateNextAudioBlock(AudioSampleBuffer& leftBuffer, AudioSampleBuffer& rightBuffer, int numSamples);
-		void populateNextAudioBlock(const AudioSourceChannelInfo& info);
 		void discardNextAudioBlock(int numSamples); // if out of range, don't want it to skip around
 
 		int id() const {
@@ -43,17 +42,19 @@ namespace SpatialAudio
 		juce::Image img() const { return m_img; };
 		juce::String audioFile() const { return m_audioFileName; };
 		juce::String imageFile() const { return m_imageFileName; };
+		ImageComponent * imageComponent() const { return m_imageComponent.get(); };
 		Point<float> position() const { return m_position; };
 		float radius() const { return m_radius; };
 		LocalAudioSource& operator=(const LocalAudioSource& rhs);
 		LocalAudioSource(LocalAudioSource& other);
 		void prepareFilters(double samplingRate, double samplesPerBlockExpected);
-		ScopedPointer<ImageComponent> m_imageComponent;
-		void populateNextAudioBlock(float *lBuf, float* rBuf, int numSamples);
+
 	private:
 		juce::Image m_img;
 		AudioFormatManager m_formatManager;
 		ScopedPointer<AudioFormatReaderSource> m_readerSource;
+		ScopedPointer<ImageComponent> m_imageComponent;
+
 		AudioTransportSource m_transportSource;
 		juce::String m_imageFileName;
 		juce::String m_audioFileName;

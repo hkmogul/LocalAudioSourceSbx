@@ -29,7 +29,7 @@ MainComponent::MainComponent()
     setAudioChannels (0, 2);
 	
 
-	player = Avatar(0.5f,0.5f,0.01f,45);
+	player = Avatar(this,0.5f,0.5f,0.01f,45);
 
 	addAndMakeVisible(arrow);
 	// get position based on relative bounds
@@ -40,7 +40,7 @@ MainComponent::MainComponent()
 	//images = Array<ImageComponent>()
 	
 	//getTopLevelComponent()->addKeyListener(this);
-	addKeyListener(this);
+	addKeyListener(&player);
 	setWantsKeyboardFocus(true);
 	setSize(800, 600);
 
@@ -64,14 +64,11 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 		auto root = JSON::parse(file);
 		auto allSources = root.getProperty(SOURCES_KEY, var()).getArray();
 		// initialize the imagecomponents array
-		int count = 0;
 		for (auto oneSource : *allSources)
 		{
 			// load the audio sources
 			auto *temp = new LocalAudioSource(oneSource);
 			audioSourceRegistry.push_back(temp);
-			addAndMakeVisible((audioSourceRegistry.back()->m_imageComponent));
-			count++;
 		}
 	}
 	else
@@ -113,7 +110,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 		if (*iter != nullptr)
 		{
 			(*iter)->prepareFilters(sampleRate, samplesPerBlockExpected);
-			addAndMakeVisible((*iter)->m_imageComponent.get());
+			addAndMakeVisible((*iter)->imageComponent());
 		}
 
 	}
@@ -189,31 +186,6 @@ void MainComponent::releaseResources()
 	}
 }
 
-bool MainComponent::keyPressed(const juce::KeyPress & key, juce::Component * originatingComponent)
-{
-	(void)originatingComponent; // block warnings
-	if (key.getKeyCode() == key.leftKey)
-	{
-		player.rotateCounterClockwise();
-	}
-	else if (key.getKeyCode() == key.rightKey)
-	{
-		player.rotateClockwise();
-	}
-	else if (key.getKeyCode() == key.upKey)
-	{
-		player.moveU();
-	}
-	else if (key.getKeyCode() == key.downKey)
-	{
-		player.moveD();
-	}
-
-	String m;
-	repaint();
-	Logger::getCurrentLogger()->writeToLog(m);
-	return true;
-}
 
 //==============================================================================
 void MainComponent::paint (Graphics& g)
@@ -240,10 +212,10 @@ void MainComponent::paint (Graphics& g)
 			// this would happen if it failed to allocate the memory
 			continue;
 		}
-		if (val->m_imageComponent != nullptr)
+		if (val->imageComponent() != nullptr)
 		{
 			auto position = val->position();
-			auto test = val->m_imageComponent.get();
+			auto test = val->imageComponent();
 			test->setBoundsRelative(position.getX(), position.getY(), 0.05f, 0.05f);
 		}
 		else
@@ -271,10 +243,10 @@ void MainComponent::resized()
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
 		auto val = *iter;
-		if (val->m_imageComponent != nullptr)
+		if (val->imageComponent() != nullptr)
 		{
 			auto position = val->position();
-			auto test = val->m_imageComponent.get();
+			auto test = val->imageComponent();
 			test->setBoundsRelative(position.getX(), position.getY(), 0.05f, 0.05f);
 		}
 		else

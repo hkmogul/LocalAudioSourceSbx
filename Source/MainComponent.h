@@ -19,7 +19,7 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent   : public AudioAppComponent, KeyListener
+class MainComponent   : public AudioAppComponent
 {
 public:
     //==============================================================================
@@ -30,7 +30,6 @@ public:
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
-	bool keyPressed(const juce::KeyPress &key, juce::Component * originatingComponent) override;
 
     //==============================================================================
     void paint (Graphics& g) override;

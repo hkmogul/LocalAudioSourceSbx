@@ -206,39 +206,6 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 	}
 }
 
-void SpatialAudio::LocalAudioSource::populateNextAudioBlock(const AudioSourceChannelInfo & info)
-{
-	if (isReady && inRange)
-	{
-		if (!m_transportSource.isPlaying())
-		{
-
-			m_transportSource.start();
-		}
-		// fill in one buffer from the transport source
-		m_transportSource.getNextAudioBlock(info);
-		// turn these into blocks
-		float *lp = info.buffer->getWritePointer(0);
-		float *rp = info.buffer->getWritePointer(1);
-
-		dsp::AudioBlock<float> lBufBlock = dsp::AudioBlock<float>(&lp, 1, 0, info.buffer->getNumSamples());
-		dsp::AudioBlock<float> rBufBlock = dsp::AudioBlock<float>(&rp, 1, 0, info.buffer->getNumSamples());
-
-		// turn the blocks into destructive/in place processing contexts
-		dsp::ProcessContextReplacing<float> lContext(lBufBlock);
-		dsp::ProcessContextReplacing<float> rContext(rBufBlock);
-
-		m_lFIR.process(lContext);
-		m_rFIR.process(rContext);
-
-		// then process using whatever the distance based filter will be on the same contexts
-
-	}
-	else if (isReady)
-	{
-		discardNextAudioBlock(info.buffer->getNumSamples());
-	}
-}
 
 void LocalAudioSource::discardNextAudioBlock(int numSamples)
 {

@@ -14,11 +14,12 @@ using namespace std;
 
 Avatar::Avatar()
 {
-	Avatar(0.5f, 0.5f, 0.01f, 0.0f);
+	Avatar(nullptr,0.5f, 0.5f, 0.01f, 0.0f);
 }
-Avatar::Avatar(float xInit = 0.5f, float yInit = 0.5f, float velocity = 0.01f, float thetaInit = 0.0f) 
+Avatar::Avatar(Component * ptr,float xInit = 0.5f, float yInit = 0.5f, float velocity = 0.01f, float thetaInit = 0.0f)
 	: xPos(xInit),yPos(yInit),vel(velocity), thetaPos(thetaInit), position(xInit, yInit)
 {
+	m_cpt = ptr;
 	thetaVel = 15; // degrees
 
 	m_img = ImageFileFormat::loadFrom(BinaryData::arrow_png, (size_t)BinaryData::arrow_pngSize);
@@ -59,6 +60,32 @@ void SpatialAudio::Avatar::rotateCounterClockwise()
 	{
 		thetaPos = 360 + thetaPos;
 	}
+}
+
+bool Avatar::keyPressed(const juce::KeyPress & key, juce::Component * originatingComponent)
+{
+	(void)originatingComponent; // block warnings
+	if (key.getKeyCode() == key.leftKey)
+	{
+		rotateCounterClockwise();
+	}
+	else if (key.getKeyCode() == key.rightKey)
+	{
+		rotateClockwise();
+	}
+	else if (key.getKeyCode() == key.upKey)
+	{
+		moveU();
+	}
+	else if (key.getKeyCode() == key.downKey)
+	{
+		moveD();
+	}
+	if (m_cpt != nullptr)
+	{
+		m_cpt->repaint();
+	}
+	return true;
 }
 
 
