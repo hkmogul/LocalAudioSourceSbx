@@ -127,24 +127,40 @@ LocalAudioSource::LocalAudioSource(const juce::var val)
 }
 
 
-bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
+bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float avatarAngle)
 {
 	m_distance = m_position.getDistanceFrom(avatarPosition);
+	// within bounds
 	if (m_distance <= m_radius)
 	{
 		float distRatio = m_distance / m_radius; // ranges from 0 to 1.  the closer it is (lower distanceRatio, we want a higher gain)
 		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
 		String m;
-		//m << "Gain is " << m_gain;
 		m_transportSource.setGain(m_gain);
 
-		float thetaRadians = m_position.getAngleToPoint(avatarPosition);
-		float thetaDegrees = radiansToDegrees(thetaRadians);
+		float thetaRadians = avatarPosition.getAngleToPoint(m_position);
+		
+		float thetaDegrees = radiansToDegrees(thetaRadians) + 270;
 		if (thetaDegrees < 0)
 		{
 			thetaDegrees = 360 + thetaDegrees;
 		}
-		int thetaTemp = ((int)(thetaDegrees + theta) % 360);
+
+		// use quadrant of avatar relative to source
+		// Quadrant I 
+		if (avatarPosition.getX() >= m_position.getX() && avatarPosition.getY() < m_position.getY())
+		{
+			// do nothing
+		}
+		// quadrant II or IV
+		else if ((avatarPosition.getX() <= m_position.getX() && avatarPosition.getY() < m_position.getY()) ||
+			avatarPosition.getX() >= m_position.getX() && avatarPosition.getY() > m_position.getY())
+		{
+			thetaDegrees = thetaDegrees + 180;
+		}
+	
+
+		int thetaTemp = ((int)(thetaDegrees + avatarAngle) % 360);
 		// to handle rollover
 		int thetaInd = (int)round(thetaTemp * ONEOVERFIFTEEN) % 24; 
 		if (thetaInd != currentThetaInd)
@@ -155,6 +171,8 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float theta)
 				if (currentThetaInd < 0) {}
 			}
 			currentThetaInd = thetaInd;
+			m << "Theta in radians is PI * " << (thetaRadians + degreesToRadians(avatarAngle)) / 3.14159;
+			Logger::getCurrentLogger()->writeToLog(m);
 			String m1;
 			m1 << "Current theta index is " << currentThetaInd << " , theta is " << thetaTemp; 
 			Logger::getCurrentLogger()->writeToLog(m1);

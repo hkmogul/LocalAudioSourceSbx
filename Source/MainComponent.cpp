@@ -86,19 +86,19 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 		auto *temp = new LocalAudioSource(propMap);
 		audioSourceRegistry.push_back(temp);
 
-		propMap["AudioFile"] = "C:\\Users\\hilar\\Desktop\\billyIdol.mp3";
-		propMap["ImageFile"] = "C:\\Users\\hilar\\Desktop\\coffee-pixels.png";
-		propMap["XPosition"] = "0.8";
-		auto *temp2 = new LocalAudioSource(propMap);
-		audioSourceRegistry.push_back(temp2);
+		//propMap["AudioFile"] = "C:\\Users\\hilar\\Desktop\\billyIdol.mp3";
+		//propMap["ImageFile"] = "C:\\Users\\hilar\\Desktop\\coffee-pixels.png";
+		//propMap["XPosition"] = "0.8";
+		//auto *temp2 = new LocalAudioSource(propMap);
+		//audioSourceRegistry.push_back(temp2);
 
 
-		propMap["AudioFile"] = "C:\\Users\\hilar\\Desktop\\nsync.mp3";
-		propMap["ImageFile"] = "C:\\Users\\hilar\\Desktop\\coffee-pixels.png";
-		propMap["XPosition"] = "0.5";
-		propMap["YPosition"] = "0.2";
-		auto *temp3 = new LocalAudioSource(propMap);
-		audioSourceRegistry.push_back(temp3);
+		//propMap["AudioFile"] = "C:\\Users\\hilar\\Desktop\\nsync.mp3";
+		//propMap["ImageFile"] = "C:\\Users\\hilar\\Desktop\\coffee-pixels.png";
+		//propMap["XPosition"] = "0.5";
+		//propMap["YPosition"] = "0.2";
+		//auto *temp3 = new LocalAudioSource(propMap);
+		//audioSourceRegistry.push_back(temp3);
 	}
 	
 	this->leftSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
@@ -132,7 +132,7 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 		auto val = *iter;
 		if (val->objectInRange(player.getPosition(), player.theta()))
 		{
-
+			// iterate through to get the right number
 			leftSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
 			rightSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
 			val->populateNextAudioBlock(leftSources[sourceIndex], rightSources[sourceIndex], bufferToFill.buffer->getNumSamples());
@@ -143,8 +143,8 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 		{
 			val->discardNextAudioBlock(bufferToFill.buffer->getNumSamples());
 		}
-		sourceIndex++;
 
+		sourceIndex++;
 
 	}
 
@@ -175,8 +175,7 @@ void MainComponent::releaseResources()
 {
     // This will be called when the audio device stops, or when it is being
     // restarted due to a setting change.
-
-    // For more details, see the help for AudioProcessor::releaseResources()
+	// the ptrs for the audio source registry were dynamically allocated to keep them in scope
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
 		if (*iter != nullptr)
