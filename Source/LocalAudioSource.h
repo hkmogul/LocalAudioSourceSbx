@@ -14,13 +14,13 @@ namespace SpatialAudio
 		// default constructor
 		LocalAudioSource();
 		// constructor using the serialized properties
-		LocalAudioSource(std::map<juce::String, juce::String> propertyDict);
+		LocalAudioSource(std::map<juce::String, juce::String> propertyDict, juce::String baseDir = "");
 
 		// constructor using the raw properties
-		LocalAudioSource(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id);
+		LocalAudioSource(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id, juce::String baseDir = "");
 
 		// constructor using JsonCpp value
-		LocalAudioSource(const juce::var val);
+		LocalAudioSource(const juce::var val, juce::String baseDir = "");
 
 		
 		// detects if the avatar is in range.  sets the internal flag for it

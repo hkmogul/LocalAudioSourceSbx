@@ -10,6 +10,7 @@ const char* L_IMAGEFILENAMEPROP = "ImageFile";
 const char* L_XPOSITIONPROP = "XPosition";
 const char* L_YPOSITIONPROP = "YPosition";
 const char* L_RADIUSPROP = "Radius";
+const char* L_ROOTFOLDERPROP = "RootFolder";
 using namespace juce;
 using namespace std;
 using namespace SpatialAudio;
@@ -20,22 +21,52 @@ SpatialAudio::LocalAudioSource::LocalAudioSource()
 	isReady = false;
 
 }
-LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> propertyDict)
+LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> propertyDict, juce::String baseDir)
 {
 	// parse props from LocalAudioSource, then initialize using other constructor
 	juce::String aFile = "";
 	juce::String iFile = "";
+	juce::String rootFolder = "";
+	File rf;
 	float x = -1.0;
 	float y = -1.0;
 	float r = -1.0;
+	// find root folder to prepend with first
+	if (propertyDict.find(L_ROOTFOLDERPROP) != propertyDict.end())
+	{
+		// c++ y r u like this		
+		// TODO: OS -invariant way of handling concatenating file paths
+		if (baseDir == "")
+		{
+			rf = File::getCurrentWorkingDirectory().getChildFile(propertyDict[L_ROOTFOLDERPROP]);
+		}
+		else
+		{
+			rf = File(baseDir).getChildFile(propertyDict[L_ROOTFOLDERPROP]);
+		}
+	}
+	else
+	{
+		// no root folder to find assets? use the given folder
+		if (baseDir != "")
+		{
+			rf = File(baseDir);
+		}
+		else
+		{
+			rf = File::getCurrentWorkingDirectory();
+		}
+	}
+
 	if (propertyDict.find(L_AUDIOFILENAMEPROP) != propertyDict.end())
 	{
-		aFile = propertyDict[L_AUDIOFILENAMEPROP];
+
+		aFile = rf.getChildFile(propertyDict[L_AUDIOFILENAMEPROP]).getFullPathName();
 	}
 
 	if (propertyDict.find(L_IMAGEFILENAMEPROP) != propertyDict.end())
 	{
-		iFile = propertyDict[L_IMAGEFILENAMEPROP];
+		iFile = rf.getChildFile(propertyDict[L_IMAGEFILENAMEPROP]).getFullPathName();
 	}
 
 	if (propertyDict.find(L_RADIUSPROP) != propertyDict.end())
@@ -74,40 +105,67 @@ LocalAudioSource::LocalAudioSource(
 	float xPos, 
 	float yPos, 
 	float radius, 
-	int id) 
+	int id,
+	juce::String baseDir) 
 {
 	init(audioFileName, imageFileName, xPos, yPos, radius, id);
 }
 
-LocalAudioSource::LocalAudioSource(const juce::var val)
+LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 {
 	juce::String aFile = "";
 	juce::String iFile = "";
+	File rf;
 	float x = -1.0;
 	float y = -1.0;
 	float r = -1.0;
 
-	if (!val[L_AUDIOFILENAMEPROP] != NULL)
+	if (!val[L_ROOTFOLDERPROP] == NULL)
 	{
-		aFile = val[L_AUDIOFILENAMEPROP].toString();
+		if (baseDir == "")
+		{
+			rf = File::getCurrentWorkingDirectory().getChildFile(val[L_ROOTFOLDERPROP].toString());
+		}
+		else
+		{
+			rf = File(baseDir).getChildFile(val[L_ROOTFOLDERPROP].toString());
+		}
+	}
+	else
+	{
+		if (baseDir != "")
+		{
+			rf = File(baseDir);
+		}
+		else
+		{
+			// current working directory
+			rf = File::getCurrentWorkingDirectory();
+		}
 	}
 
-	if (!val[L_IMAGEFILENAMEPROP] != NULL)
+	if (!val[L_AUDIOFILENAMEPROP] == NULL)
 	{
-		iFile = val[L_IMAGEFILENAMEPROP].toString();
+
+		aFile = rf.getChildFile(val[L_AUDIOFILENAMEPROP].toString()).getFullPathName();
 	}
 
-	if (!val[L_XPOSITIONPROP] != NULL)
+	if (!val[L_IMAGEFILENAMEPROP] == NULL)
+	{
+		iFile = rf.getChildFile(val[L_IMAGEFILENAMEPROP].toString()).getFullPathName();
+	}
+
+	if (!val[L_XPOSITIONPROP] == NULL)
 	{
 		x = val[L_XPOSITIONPROP];
 	}
 
-	if (!val[L_YPOSITIONPROP] != NULL)
+	if (!val[L_YPOSITIONPROP] == NULL)
 	{
 		y = val[L_YPOSITIONPROP];
 	}
 
-	if (!val[L_RADIUSPROP] != NULL)
+	if (!val[L_RADIUSPROP] == NULL)
 	{
 		r = val[L_RADIUSPROP];
 	}
@@ -168,14 +226,16 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float avatarAn
 			if (thetaInd < 0)
 			{
 				// break here
+				DBG("Somehow calculated a bad index");
+				thetaInd = 0;
 				if (currentThetaInd < 0) {}
 			}
 			currentThetaInd = thetaInd;
-			m << "Theta in radians is PI * " << (thetaRadians + degreesToRadians(avatarAngle)) / 3.14159;
+			/*m << "Theta in radians is PI * " << (thetaRadians + degreesToRadians(avatarAngle)) / 3.14159;
 			Logger::getCurrentLogger()->writeToLog(m);
 			String m1;
 			m1 << "Current theta index is " << currentThetaInd << " , theta is " << thetaTemp; 
-			Logger::getCurrentLogger()->writeToLog(m1);
+			Logger::getCurrentLogger()->writeToLog(m1);*/
 			*(m_lFIR.coefficients) = dsp::FIR::Coefficients<float>(leftIR[currentThetaInd], (size_t) L_IRLEN);
 			*(m_rFIR.coefficients) = dsp::FIR::Coefficients<float>(rightIR[currentThetaInd], (size_t)R_IRLEN);
 
@@ -194,7 +254,6 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 	{
 		if (!m_transportSource.isPlaying())
 		{
-			
 			m_transportSource.start();
 		}
 		// fill in one buffer from the transport source
@@ -214,19 +273,22 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 
 		m_lFIR.process(lContext);
 		m_rFIR.process(rContext);
-
-		// then process using whatever the distance based filter will be on the same contexts
-
 	}
 	else if (isReady)
 	{
 		discardNextAudioBlock(numSamples);
+	}
+	else
+	{
+		// do something i just want it to break here
+		DBG("whaaaa");
 	}
 }
 
 
 void LocalAudioSource::discardNextAudioBlock(int numSamples)
 {
+	// throw out a certain number of samples, instead of calculating the time skip (especially if we're in a loop section)
 	AudioSampleBuffer buffer(1, numSamples);
 	AudioSourceChannelInfo buff(buffer);
 	m_transportSource.getNextAudioBlock(buff);
@@ -251,7 +313,7 @@ LocalAudioSource::LocalAudioSource(LocalAudioSource & other)
 void SpatialAudio::LocalAudioSource::prepareFilters(double samplingRate, double samplesPerBlockExpected)
 {
 	dsp::ProcessSpec spec;
-	spec.numChannels = 1;
+	spec.numChannels = 1; // the filters are mono
 	spec.maximumBlockSize = (int)samplesPerBlockExpected;
 	spec.sampleRate = samplingRate;
 	m_transportSource.prepareToPlay((int)samplesPerBlockExpected, (int)samplingRate);

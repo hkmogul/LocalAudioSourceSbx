@@ -61,13 +61,15 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	if (chooser.browseForFileToOpen())
 	{
 		File file(chooser.getResult());
+		auto baseDir = file.getParentDirectory().getFullPathName();
+		DBG(baseDir);
 		auto root = JSON::parse(file);
 		auto allSources = root.getProperty(SOURCES_KEY, var()).getArray();
 		// initialize the imagecomponents array
 		for (auto oneSource : *allSources)
 		{
 			// load the audio sources
-			auto *temp = new LocalAudioSource(oneSource);
+			auto *temp = new LocalAudioSource(oneSource, baseDir);
 			audioSourceRegistry.push_back(temp);
 		}
 	}
@@ -76,14 +78,17 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 		// force creation of a default
 
 		map<String, String> propMap;
-		propMap["AudioFile"] = "C:\\Users\\hilar\\OneDrive\\School\\ComputerAudition\\Hilary_Mogul_HW3\\pop.wav";
-		propMap["ImageFile"] = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\defaultImage.jpg";
+		String baseDir = "C:\\JUCE\\sbx\\LocalAudioSourceSbx";
+		String rootFolder = "Assets";
+		propMap["AudioFile"] = "defaultSong.mp3";
+		propMap["ImageFile"] = "defaultImage.jpg";
 		propMap["XPosition"] = "0.1";
 		propMap["YPosition"] = "0.7";
 		propMap["Radius"] = "0.5";
-
-		//addAndMakeVisible(testSource);
-		auto *temp = new LocalAudioSource(propMap);
+		propMap["RootFolder"] = rootFolder;
+		
+		
+		auto *temp = new LocalAudioSource(propMap, baseDir);
 		audioSourceRegistry.push_back(temp);
 
 		//propMap["AudioFile"] = "C:\\Users\\hilar\\Desktop\\billyIdol.mp3";
@@ -173,8 +178,6 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 
 void MainComponent::releaseResources()
 {
-    // This will be called when the audio device stops, or when it is being
-    // restarted due to a setting change.
 	// the ptrs for the audio source registry were dynamically allocated to keep them in scope
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
@@ -250,13 +253,14 @@ void MainComponent::resized()
 		}
 		else
 		{
-			Logger::getCurrentLogger()->writeToLog("Thing didnt have shit");
 		}
 
 	}
 	
 }
 
+
+// global functions to call once I make this work
 void callPopulateFunction(LocalAudioSource * src, vector<AudioSampleBuffer>& lBuf, vector<AudioSampleBuffer>& rBuf,int index, int numSamples)
 {
 	src->populateNextAudioBlock(lBuf[index], rBuf[index], numSamples);
