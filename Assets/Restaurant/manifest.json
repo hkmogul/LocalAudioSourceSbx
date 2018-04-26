@@ -1,0 +1,24 @@
+{
+    "_comment": "Represents a restaurant setting",
+    "Sources":
+    [
+        {
+            "_comment": "Represents noise from the kitchen",
+            "RootFolder": "Assets",
+            "AudioFile" : "kitchen.mp3",
+            "ImageFile": "kitchen.jpg",
+            "XPosition": 0.5,
+            "YPosition": 0.01,
+            "Radius": 0.2
+        },
+        {
+            "_comment": "Represents sounds from diners having a conversation",
+            "RootFolder": "Assets",
+            "AudioFile": "diners_calm.mp3",
+            "ImageFile": "calm_table.jpg",
+            "XPosition": 0.3,
+            "YPosition": 0.5,
+            "Radius": 0.1
+        }
+    ]
+}

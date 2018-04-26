@@ -63,15 +63,25 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 		File file(chooser.getResult());
 		auto baseDir = file.getParentDirectory().getFullPathName();
 		DBG(baseDir);
+		
 		auto root = JSON::parse(file);
-		auto allSources = root.getProperty(SOURCES_KEY, var()).getArray();
-		// initialize the imagecomponents array
-		for (auto oneSource : *allSources)
+		var invalidSource;
+		auto sources = root["Sources"];
+		Array<var> *allSources = nullptr;
+		if (sources != invalidSource)
 		{
-			// load the audio sources
-			auto *temp = new LocalAudioSource(oneSource, baseDir);
-			audioSourceRegistry.push_back(temp);
+			allSources = sources.getArray();
+			if (allSources != nullptr)
+			{
+				for (auto oneSource : *allSources)
+				{
+					// load the audio sources
+					auto *temp = new LocalAudioSource(oneSource, baseDir);
+					audioSourceRegistry.push_back(temp);
+				}
+			}
 		}
+
 	}
 	else
 	{
@@ -173,6 +183,10 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 				rPtr[i] += rightSources[*it].getReadPointer(0)[i];
 			}
 		}
+	}
+	else
+	{
+		bufferToFill.clearActiveBufferRegion();
 	}
 }
 

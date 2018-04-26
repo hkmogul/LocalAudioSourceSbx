@@ -34,8 +34,6 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 	// find root folder to prepend with first
 	if (propertyDict.find(L_ROOTFOLDERPROP) != propertyDict.end())
 	{
-		// c++ y r u like this		
-		// TODO: OS -invariant way of handling concatenating file paths
 		if (baseDir == "")
 		{
 			rf = File::getCurrentWorkingDirectory().getChildFile(propertyDict[L_ROOTFOLDERPROP]);
@@ -93,7 +91,6 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 	else
 	{
 		// use explicit constructor
-		// TODO: maybe UUIDs instead?
 		init(aFile, iFile, x, y, r, global_id++);
 	}
 
@@ -119,11 +116,12 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 	float x = -1.0;
 	float y = -1.0;
 	float r = -1.0;
-
-	if (!val[L_ROOTFOLDERPROP] == NULL)
+	var invalidVar;
+	if (val[L_ROOTFOLDERPROP] != invalidVar)
 	{
 		if (baseDir == "")
 		{
+			// use execution directory
 			rf = File::getCurrentWorkingDirectory().getChildFile(val[L_ROOTFOLDERPROP].toString());
 		}
 		else
@@ -144,28 +142,28 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 		}
 	}
 
-	if (!val[L_AUDIOFILENAMEPROP] == NULL)
+	if (val[L_AUDIOFILENAMEPROP] != invalidVar)
 	{
 
 		aFile = rf.getChildFile(val[L_AUDIOFILENAMEPROP].toString()).getFullPathName();
 	}
 
-	if (!val[L_IMAGEFILENAMEPROP] == NULL)
+	if (val[L_IMAGEFILENAMEPROP] != invalidVar)
 	{
 		iFile = rf.getChildFile(val[L_IMAGEFILENAMEPROP].toString()).getFullPathName();
 	}
 
-	if (!val[L_XPOSITIONPROP] == NULL)
+	if (val[L_XPOSITIONPROP] != invalidVar)
 	{
 		x = val[L_XPOSITIONPROP];
 	}
 
-	if (!val[L_YPOSITIONPROP] == NULL)
+	if (val[L_YPOSITIONPROP] != invalidVar)
 	{
 		y = val[L_YPOSITIONPROP];
 	}
 
-	if (!val[L_RADIUSPROP] == NULL)
+	if (val[L_RADIUSPROP] != invalidVar)
 	{
 		r = val[L_RADIUSPROP];
 	}
@@ -180,7 +178,7 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 	{
 		// use explicit constructor
 		// TODO: maybe UUIDs instead?
-		LocalAudioSource(aFile, iFile, x, y, r, global_id++);
+		init(aFile, iFile, x, y, r, global_id++);
 	}
 }
 
