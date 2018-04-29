@@ -48,6 +48,7 @@ namespace SpatialAudio
 		LocalAudioSource& operator=(const LocalAudioSource& rhs);
 		LocalAudioSource(LocalAudioSource& other);
 		void prepareFilters(double samplingRate, double samplesPerBlockExpected);
+		float getRadius() const { return m_radius; };
 
 	private:
 		juce::Image m_img;

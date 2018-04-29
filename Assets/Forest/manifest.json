@@ -1,0 +1,51 @@
+{
+    "_comment": "Represents a forest setting",
+    "Sources":
+    [
+        {
+            "_comment": "Represents a waterfall",
+            "RootFolder": "Assets",
+            "AudioFile" : "waterfall.mp3",
+            "ImageFile": "waterfall.jpg",
+            "XPosition": 0.5,
+            "YPosition": 0.01,
+            "Radius": 0.3
+        },
+        {
+            "_comment": "Represents sounds from an owl",
+            "RootFolder": "Assets",
+            "AudioFile": "owl.mp3",
+            "ImageFile": "owl.jpg",
+            "XPosition": 0.3,
+            "YPosition": 0.5,
+            "Radius": 0.4
+        },
+        {
+            "_comment": "Represents sounds from a cicada",
+            "RootFolder": "Assets",
+            "AudioFile": "cicada.wav",
+            "ImageFile": "cicada.jpg",
+            "XPosition": 0.8,
+            "YPosition": 0.9,
+            "Radius": 0.6
+        },
+        {
+            "_comment": "Represents sounds from a wolf howling",
+            "RootFolder": "Assets",
+            "AudioFile": "wolf.wav",
+            "ImageFile": "wolf.jpg",
+            "XPosition": 0.5,
+            "YPosition": 0.1,
+            "Radius": 0.2
+        },
+        {
+            "_comment": "Represents sounds from a woodpecker",
+            "RootFolder": "Assets",
+            "AudioFile": "woodpecker.wav",
+            "ImageFile": "woodpecker.jpg",
+            "XPosition": 0.1,
+            "YPosition": 0.1,
+            "Radius": 0.4
+        }
+    ]
+}

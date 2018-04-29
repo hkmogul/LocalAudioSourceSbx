@@ -1,0 +1,15 @@
+{
+    "_comment": "Single source demp",
+    "Sources":
+    [
+        {
+            "_comment": "Represents a waterfall",
+            "RootFolder": "Assets",
+            "AudioFile" : "defaultSong.mp3",
+            "ImageFile": "defaultImage.jpg",
+            "XPosition": 0.5,
+            "YPosition": 0.5,
+            "Radius": 0.3
+        }
+    ]
+}
