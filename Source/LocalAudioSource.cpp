@@ -177,7 +177,6 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 	else
 	{
 		// use explicit constructor
-		// TODO: maybe UUIDs instead?
 		init(aFile, iFile, x, y, r, global_id++);
 	}
 }
@@ -204,7 +203,7 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float avatarAn
 
 		// use quadrant of avatar relative to source
 		// Quadrant I 
-		if (avatarPosition.getX() >= m_position.getX() && avatarPosition.getY() < m_position.getY())
+		if (avatarPosition.getX() >= m_position.getX() && avatarPosition.getY() <= m_position.getY())
 		{
 			// do nothing
 		}

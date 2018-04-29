@@ -66,6 +66,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 		
 		auto root = JSON::parse(file);
 		var invalidSource;
+		// TODO: set background image and player image
 		auto sources = root["Sources"];
 		Array<var> *allSources = nullptr;
 		if (sources != invalidSource)
@@ -100,7 +101,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 		
 		auto *temp = new LocalAudioSource(propMap, baseDir);
 		audioSourceRegistry.push_back(temp);
-
+		// TODO: can't use files that are already in play- can we preload and copy them into memory?
 		//propMap["AudioFile"] = "C:\\Users\\hilar\\Desktop\\billyIdol.mp3";
 		//propMap["ImageFile"] = "C:\\Users\\hilar\\Desktop\\coffee-pixels.png";
 		//propMap["XPosition"] = "0.8";
@@ -142,6 +143,7 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 	// vector of async tasks to call?
 	//vector<future<void>> calcTasks(audioSourceRegistry.size());
 	int sourceIndex = 0;
+	
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 	{
 		auto val = *iter;
@@ -176,11 +178,11 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 		auto rPtr = bufferToFill.buffer->getWritePointer(1);
 		for (int i = 0; i < bufferToFill.buffer->getNumSamples(); i++)
 		{
-			// iterate through indices that would have values
+			// iterate through indices that would have values, normalize based on the size of the index array
 			for (auto it = relevantIndices.begin(); it != relevantIndices.end(); it++)
 			{
-				lPtr[i] += leftSources[*it].getReadPointer(0)[i];
-				rPtr[i] += rightSources[*it].getReadPointer(0)[i];
+				lPtr[i] += leftSources[*it].getReadPointer(0)[i] / relevantIndices.size();
+				rPtr[i] += rightSources[*it].getReadPointer(0)[i] / relevantIndices.size();
 			}
 		}
 	}
