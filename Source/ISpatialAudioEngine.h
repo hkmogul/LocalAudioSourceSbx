@@ -12,7 +12,7 @@ namespace SpatialAudio
 	{
 	public:
 		// constructor - takes in the parent component so it has somewhere to put GUI objects
-		SpatialAudioEngine(Component *parentCpt);
+		SpatialAudioEngine(Component *parentCpt, bool avatarShouldBeVisible = true, bool componentsShouldBeVisible = true);
 
 		// deleter - mainly just deals with getting rid of the registry cleanly
 		~SpatialAudioEngine();
@@ -33,6 +33,9 @@ namespace SpatialAudio
 		std::vector<AudioSampleBuffer> leftSources;
 		std::vector<AudioSampleBuffer> rightSources;
 		void prepareAndAddComponents(int samplingRate, int samplesPerBlockExpected);
+		bool componentsVisible;
+		bool avatarVisible;
+		Image bgImage;
 	};
 }
 

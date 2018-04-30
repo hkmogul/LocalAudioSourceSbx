@@ -3,13 +3,17 @@
 using namespace SpatialAudio;
 using namespace std;
 
-SpatialAudioEngine::SpatialAudioEngine(Component * parentCpt) : parentCpt(parentCpt)
+SpatialAudioEngine::SpatialAudioEngine(Component * parentCpt, bool avatarVisible, bool componentVisible) : parentCpt(parentCpt), componentsVisible(componentVisible), avatarVisible(avatarVisible)
 {
 	player = Avatar(parentCpt, 0.5f, 0.5f, 0.01f, 45);
-	parentCpt->addAndMakeVisible(arrow);
+	if (avatarVisible)
+	{
+		parentCpt->addAndMakeVisible(arrow);
+		arrow.setImage(player.img());
+
+	}
 	parentCpt->addKeyListener(&player);
 	// get position based on relative bounds
-	arrow.setImage(player.img());
 	
 	parentCpt->setWantsKeyboardFocus(true);
 	parentCpt->setSize(600, 600);
@@ -84,12 +88,21 @@ void SpatialAudio::SpatialAudioEngine::prepare(int samplingRate, int samplesPerB
 	{
 		File file(chooser.getResult());
 		// get filename
+		auto base = file.getParentDirectory();
 		auto baseDir = file.getParentDirectory().getFullPathName();
 
 		auto root = JSON::parse(file);
-
 		// JUCE's JSON handling requires a null object to compare it against
 		var invalidSource;
+		// get the background image
+		if (root["bgImage"] != invalidSource)
+		{
+			String path = root["bgImage"].toString();
+			bgImage = ImageFileFormat::loadFrom(base.getChildFile(path));
+		}
+
+
+
 		auto sources = root["Sources"];
 		Array<var> *allSources = nullptr;
 		if (sources != invalidSource)
@@ -134,42 +147,56 @@ void SpatialAudio::SpatialAudioEngine::prepare(int samplingRate, int samplesPerB
 
 void SpatialAudio::SpatialAudioEngine::paint(Graphics & g)
 {
-	g.fillAll(parentCpt->getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
-
-	// iterate through locations
-	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	if (bgImage.isValid())
 	{
-		auto val = *iter;
-		if (val == nullptr)
+		g.drawImageAt(bgImage, 0, 0);
+	}
+	else
+	{
+		g.fillAll(parentCpt->getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+	}
+
+	if (componentsVisible)
+	{
+		// iterate through locations
+		for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
 		{
-			// this would happen if it failed to allocate the memory
-			continue;
-		}
-		if (val->imageComponent() != nullptr)
-		{
-			// shift location based on the radius
-			auto basePosition = val->position();
-			float newX = basePosition.getX() - val->getRadius() / 2;
-			float newY = basePosition.getY() - val->getRadius() / 2;
-			auto test = val->imageComponent();
-			test->setAlpha(1 - val->getRadius());
-			test->setBoundsRelative(newX, newY, val->getRadius(), val->getRadius());
-		}
-		else
-		{
-			Logger::getCurrentLogger()->writeToLog("IT HAS NO IMAGE?!?!");
+			auto val = *iter;
+			if (val == nullptr)
+			{
+				// this would happen if it failed to allocate the memory
+				continue;
+			}
+			if (val->imageComponent() != nullptr)
+			{
+				// shift location based on the radius
+				auto basePosition = val->position();
+				float newX = basePosition.getX() - val->getRadius() / 2;
+				float newY = basePosition.getY() - val->getRadius() / 2;
+				auto test = val->imageComponent();
+				test->setAlpha(1 - val->getRadius());
+				test->setBoundsRelative(newX, newY, val->getRadius(), val->getRadius());
+			}
+			else
+			{
+				Logger::getCurrentLogger()->writeToLog("IT HAS NO IMAGE?!?!");
+			}
 		}
 	}
 
-	auto pos = player.getPosition();
-	// should only attempt this if a rotation was done
-	arrow.setBoundsRelative(pos.getX() - 0.025f, pos.getY() - 0.025f, 0.05f, 0.05f);
-	auto bounds = arrow.getBounds();
-	arrow.setTransform(
-		AffineTransform::identity.rotated(
-			degreesToRadians(player.theta()),
-			(float)bounds.getCentreX(),
-			(float)bounds.getCentreY()));
+	if (avatarVisible)
+	{
+		arrow.toFront(false);
+		auto pos = player.getPosition();
+		// should only attempt this if a rotation was done
+		arrow.setBoundsRelative(pos.getX() - 0.025f, pos.getY() - 0.025f, 0.05f, 0.05f);
+		auto bounds = arrow.getBounds();
+		arrow.setTransform(
+			AffineTransform::identity.rotated(
+				degreesToRadians(player.theta()),
+				(float)bounds.getCentreX(),
+				(float)bounds.getCentreY()));
+	}
 }
 
 void SpatialAudio::SpatialAudioEngine::prepareAndAddComponents(int samplingRate, int samplesPerBlockExpected)
@@ -180,7 +207,10 @@ void SpatialAudio::SpatialAudioEngine::prepareAndAddComponents(int samplingRate,
 		if (*iter != nullptr)
 		{
 			(*iter)->prepareFilters(samplingRate, samplesPerBlockExpected);
-			parentCpt->addAndMakeVisible((*iter)->imageComponent());
+			if (componentsVisible)
+			{
+				parentCpt->addAndMakeVisible((*iter)->imageComponent());
+			}
 		}
 	}
 }

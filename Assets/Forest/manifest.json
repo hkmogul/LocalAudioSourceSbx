@@ -1,6 +1,7 @@
 {
     "_comment": "Represents a forest setting",
     "_commentA": "The below are temp ideas of how to serialize the bounding area of the real-life location",
+    "bgImage" : "forest.jpg",
     "bBoxUL-Lat":1,
     "bBoxUL-Long":1,
     "bBoxUR-Lat": 1,
@@ -14,20 +15,20 @@
         {
             "_comment": "Represents a waterfall. Currently, XPosition and YPosition are indicative of normalized locations",
             "RootFolder": "Assets",
-            "AudioFile" : "waterfall.mp3",
+            "AudioFile" : "waterfall.wav",
             "ImageFile": "waterfall.jpg",
             "XPosition": 0.5,
             "YPosition": 0.01,
             "Radius": 0.3
         },
         {
-            "_comment": "Represents sounds from an owl",
+            "_comment": "Represents sounds from birds",
             "RootFolder": "Assets",
-            "AudioFile": "owl.mp3",
-            "ImageFile": "owl.jpg",
+            "AudioFile": "birds.mp3",
+            "ImageFile": "birds.jpg",
             "XPosition": 0.3,
             "YPosition": 0.5,
-            "Radius": 0.4
+            "Radius": 0.7
         },
         {
             "_comment": "Represents sounds from a cicada",
@@ -43,9 +44,9 @@
             "RootFolder": "Assets",
             "AudioFile": "wolf.wav",
             "ImageFile": "wolf.jpg",
-            "XPosition": 0.5,
-            "YPosition": 0.1,
-            "Radius": 0.2
+            "XPosition": 0.2,
+            "YPosition": 0.9,
+            "Radius": 0.4
         },
         {
             "_comment": "Represents sounds from a woodpecker",
