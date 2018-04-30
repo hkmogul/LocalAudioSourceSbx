@@ -1,3 +1,5 @@
 Builds/
 JuceLibraryCode/
 Assets/**/*.mp3
+**/*.wav
+**/*.jpg
