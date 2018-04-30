@@ -23,6 +23,7 @@ namespace SpatialAudio
 		std::vector<SpatialAudio::LocalAudioSource*> audioSourceRegistry;
 		std::vector<AudioSampleBuffer> leftSources;
 		std::vector<AudioSampleBuffer> rightSources;
+		void prepareAndAddComponents(int samplingRate, int samplesPerBlockExpected);
 	};
 }
 

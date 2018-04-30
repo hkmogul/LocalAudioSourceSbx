@@ -130,15 +130,8 @@ void SpatialAudio::ISpatialAudioEngine::prepare(int samplingRate, int samplesPer
 
 	this->leftSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
 	this->rightSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
+	prepareAndAddComponents(samplingRate, samplesPerBlockExpected);
 
-	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
-	{
-		if (*iter != nullptr)
-		{
-			(*iter)->prepareFilters(samplingRate, samplesPerBlockExpected);
-			parentCpt->addAndMakeVisible((*iter)->imageComponent());
-		}
-	}
 }
 
 void SpatialAudio::ISpatialAudioEngine::paint(Graphics & g)
@@ -169,7 +162,6 @@ void SpatialAudio::ISpatialAudioEngine::paint(Graphics & g)
 		else
 		{
 			Logger::getCurrentLogger()->writeToLog("IT HAS NO IMAGE?!?!");
-			// probably should paint a dot there
 		}
 	}
 
@@ -182,4 +174,17 @@ void SpatialAudio::ISpatialAudioEngine::paint(Graphics & g)
 			degreesToRadians(player.theta()),
 			(float)bounds.getCentreX(),
 			(float)bounds.getCentreY()));
+}
+
+void SpatialAudio::ISpatialAudioEngine::prepareAndAddComponents(int samplingRate, int samplesPerBlockExpected)
+{
+	// add the GUI components, and prepare them
+	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	{
+		if (*iter != nullptr)
+		{
+			(*iter)->prepareFilters(samplingRate, samplesPerBlockExpected);
+			parentCpt->addAndMakeVisible((*iter)->imageComponent());
+		}
+	}
 }

@@ -1,5 +1,14 @@
 {
     "_comment": "Represents a forest setting",
+    "_commentA": "The below are temp ideas of how to serialize the bounding area of the real-life location",
+    "bBoxUL-Lat":1,
+    "bBoxUL-Long":1,
+    "bBoxUR-Lat": 1,
+    "bBoxUR-Long": 1,
+    "bBoxLL-Lat":1,
+    "bBoxLL-Long":1,
+    "bBoxLR-Lat": 1,
+    "bBoxLR-Long": 1,
     "Sources":
     [
         {
