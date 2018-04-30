@@ -8,13 +8,22 @@
 namespace SpatialAudio
 {
 	// Base class for location based binaural system creation. Uses normalized locations
-	class ISpatialAudioEngine
+	class SpatialAudioEngine
 	{
 	public:
-		ISpatialAudioEngine(Component *parentCpt);
-		~ISpatialAudioEngine();
+		// constructor - takes in the parent component so it has somewhere to put GUI objects
+		SpatialAudioEngine(Component *parentCpt);
+
+		// deleter - mainly just deals with getting rid of the registry cleanly
+		~SpatialAudioEngine();
+
+		// maybe this one should be final...
 		void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill);
+
+		// this is important since every single transport source needs this
 		void prepare(int samplingRate, int samplesPerBlockExpected);
+
+		// do the GUI things
 		void paint(Graphics &g);
 	protected:
 		Component * parentCpt;

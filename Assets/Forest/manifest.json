@@ -12,7 +12,7 @@
     "Sources":
     [
         {
-            "_comment": "Represents a waterfall",
+            "_comment": "Represents a waterfall. Currently, XPosition and YPosition are indicative of normalized locations",
             "RootFolder": "Assets",
             "AudioFile" : "waterfall.mp3",
             "ImageFile": "waterfall.jpg",

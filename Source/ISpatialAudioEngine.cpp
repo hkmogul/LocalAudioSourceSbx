@@ -3,7 +3,7 @@
 using namespace SpatialAudio;
 using namespace std;
 
-ISpatialAudioEngine::ISpatialAudioEngine(Component * parentCpt) : parentCpt(parentCpt)
+SpatialAudioEngine::SpatialAudioEngine(Component * parentCpt) : parentCpt(parentCpt)
 {
 	player = Avatar(parentCpt, 0.5f, 0.5f, 0.01f, 45);
 	parentCpt->addAndMakeVisible(arrow);
@@ -15,7 +15,7 @@ ISpatialAudioEngine::ISpatialAudioEngine(Component * parentCpt) : parentCpt(pare
 	parentCpt->setSize(600, 600);
 }
 
-ISpatialAudioEngine::~ISpatialAudioEngine()
+SpatialAudioEngine::~SpatialAudioEngine()
 {
 	// everything has deleters except for the registry
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
@@ -27,15 +27,13 @@ ISpatialAudioEngine::~ISpatialAudioEngine()
 	}
 }
 
-void SpatialAudio::ISpatialAudioEngine::getNextAudioBlock(const AudioSourceChannelInfo & bufferToFill)
+void SpatialAudio::SpatialAudioEngine::getNextAudioBlock(const AudioSourceChannelInfo & bufferToFill)
 {
 	bufferToFill.clearActiveBufferRegion();
 
 	leftSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
 	rightSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
 	vector<int> relevantIndices;
-	// vector of async tasks to call?
-	//vector<future<void>> calcTasks(audioSourceRegistry.size());
 	int sourceIndex = 0;
 
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
@@ -79,7 +77,7 @@ void SpatialAudio::ISpatialAudioEngine::getNextAudioBlock(const AudioSourceChann
 	}
 }
 
-void SpatialAudio::ISpatialAudioEngine::prepare(int samplingRate, int samplesPerBlockExpected)
+void SpatialAudio::SpatialAudioEngine::prepare(int samplingRate, int samplesPerBlockExpected)
 {
 	FileChooser chooser("Select a JSON file to play...", File::nonexistent, "*.json");
 	if (chooser.browseForFileToOpen())
@@ -134,11 +132,9 @@ void SpatialAudio::ISpatialAudioEngine::prepare(int samplingRate, int samplesPer
 
 }
 
-void SpatialAudio::ISpatialAudioEngine::paint(Graphics & g)
+void SpatialAudio::SpatialAudioEngine::paint(Graphics & g)
 {
 	g.fillAll(parentCpt->getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
-
-	// You can add your drawing code here!
 
 	// iterate through locations
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
@@ -176,7 +172,7 @@ void SpatialAudio::ISpatialAudioEngine::paint(Graphics & g)
 			(float)bounds.getCentreY()));
 }
 
-void SpatialAudio::ISpatialAudioEngine::prepareAndAddComponents(int samplingRate, int samplesPerBlockExpected)
+void SpatialAudio::SpatialAudioEngine::prepareAndAddComponents(int samplingRate, int samplesPerBlockExpected)
 {
 	// add the GUI components, and prepare them
 	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)

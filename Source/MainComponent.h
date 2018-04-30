@@ -39,7 +39,7 @@ public:
 private:
     //==============================================================================
 	// have a map of 
-	SpatialAudio::ISpatialAudioEngine engine;
+	SpatialAudio::SpatialAudioEngine engine;
 	//juce::Array<ImageComponent> images;
 	//juce::HashMap<int, ImageComponent*> images;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
