@@ -17,72 +17,7 @@ SpatialAudioEngine::SpatialAudioEngine(Component * parentCpt, bool avatarVisible
 	
 	parentCpt->setWantsKeyboardFocus(true);
 	parentCpt->setSize(600, 600);
-}
 
-SpatialAudioEngine::~SpatialAudioEngine()
-{
-	// everything has deleters except for the registry
-	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
-	{
-		if (*iter != nullptr)
-		{
-			delete *iter;
-		}
-	}
-}
-
-void SpatialAudio::SpatialAudioEngine::getNextAudioBlock(const AudioSourceChannelInfo & bufferToFill)
-{
-	bufferToFill.clearActiveBufferRegion();
-
-	leftSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
-	rightSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
-	vector<int> relevantIndices;
-	int sourceIndex = 0;
-
-	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
-	{
-		auto val = *iter;
-		if (val->objectInRange(player.getPosition(), player.theta()))
-		{
-			// iterate through to get the right number
-			leftSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
-			rightSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
-			val->populateNextAudioBlock(leftSources[sourceIndex], rightSources[sourceIndex], bufferToFill.buffer->getNumSamples());
-			// mark this index as one to copy in
-			relevantIndices.push_back(sourceIndex);
-		}
-		else
-		{
-			val->discardNextAudioBlock(bufferToFill.buffer->getNumSamples());
-		}
-
-		sourceIndex++;
-
-	}
-
-	if (sourceIndex > 0)
-	{
-		auto lPtr = bufferToFill.buffer->getWritePointer(0);
-		auto rPtr = bufferToFill.buffer->getWritePointer(1);
-		for (int i = 0; i < bufferToFill.buffer->getNumSamples(); i++)
-		{
-			// iterate through indices that would have values, normalize based on the size of the index array
-			for (auto it = relevantIndices.begin(); it != relevantIndices.end(); it++)
-			{
-				lPtr[i] += leftSources[*it].getReadPointer(0)[i] / relevantIndices.size();
-				rPtr[i] += rightSources[*it].getReadPointer(0)[i] / relevantIndices.size();
-			}
-		}
-	}
-	else
-	{
-		bufferToFill.clearActiveBufferRegion();
-	}
-}
-
-void SpatialAudio::SpatialAudioEngine::prepare(int samplingRate, int samplesPerBlockExpected)
-{
 	FileChooser chooser("Select a JSON file to play...", File::nonexistent, "*.json");
 	if (chooser.browseForFileToOpen())
 	{
@@ -125,7 +60,7 @@ void SpatialAudio::SpatialAudioEngine::prepare(int samplingRate, int samplesPerB
 		// force creation of a default
 
 		map<String, String> propMap;
-		String baseDir = "C:\\JUCE\\sbx\\LocalAudioSourceSbx";
+		String baseDir = "C:\\JUCE\\sbx\\LocalAudioSourceSbx\\Assets\\SingleSourceDemo";
 		String rootFolder = "Assets";
 		propMap["AudioFile"] = "defaultSong.mp3";
 		propMap["ImageFile"] = "defaultImage.jpg";
@@ -141,6 +76,72 @@ void SpatialAudio::SpatialAudioEngine::prepare(int samplingRate, int samplesPerB
 
 	this->leftSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
 	this->rightSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
+}
+
+SpatialAudioEngine::~SpatialAudioEngine()
+{
+	// everything has deleters except for the registry
+	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	{
+		if (*iter != nullptr)
+		{
+			delete *iter;
+		}
+	}
+}
+
+void SpatialAudio::SpatialAudioEngine::getNextAudioBlock(const AudioSourceChannelInfo & bufferToFill)
+{
+	bufferToFill.clearActiveBufferRegion();
+
+	leftSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
+	rightSources = vector<AudioSampleBuffer>(audioSourceRegistry.size());
+	vector<int> relevantIndices;
+	int sourceIndex = 0;
+
+	for (auto iter = audioSourceRegistry.begin(); iter != audioSourceRegistry.end(); ++iter)
+	{
+		auto val = *iter;
+		if (val->objectInRange(player.getPosition(), player.theta()))
+		{
+			// iterate through to get the right number
+			leftSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
+			rightSources[sourceIndex] = AudioSampleBuffer(1, bufferToFill.buffer->getNumSamples());
+			val->populateNextAudioBlock(leftSources[sourceIndex], rightSources[sourceIndex], bufferToFill.buffer->getNumSamples());
+			// mark this index as one to copy in
+			relevantIndices.push_back(sourceIndex);
+		}
+		else
+		{
+			val->discardNextAudioBlock(bufferToFill.buffer->getNumSamples());
+		}
+
+		sourceIndex++;
+	}
+
+	if (sourceIndex > 0)
+	{
+		auto lPtr = bufferToFill.buffer->getWritePointer(0);
+		auto rPtr = bufferToFill.buffer->getWritePointer(1);
+		for (int i = 0; i < bufferToFill.buffer->getNumSamples(); i++)
+		{
+			// iterate through indices that would have values, normalize based on the size of the index array
+			for (auto it = relevantIndices.begin(); it != relevantIndices.end(); it++)
+			{
+				lPtr[i] += leftSources[*it].getReadPointer(0)[i] / relevantIndices.size();
+				rPtr[i] += rightSources[*it].getReadPointer(0)[i] / relevantIndices.size();
+			}
+		}
+	}
+	else
+	{
+		bufferToFill.clearActiveBufferRegion();
+	}
+}
+
+void SpatialAudio::SpatialAudioEngine::prepare(int samplingRate, int samplesPerBlockExpected)
+{
+
 	prepareAndAddComponents(samplingRate, samplesPerBlockExpected);
 
 }

@@ -19,7 +19,7 @@ using namespace std;
 
 void callPopulateFunction(LocalAudioSource * src, vector<AudioSampleBuffer>& lBuf, vector<AudioSampleBuffer>& rBuf, int index, int numSamples);
 void callDiscardFunction(LocalAudioSource *src, int numSamples);
-MainComponent::MainComponent() :engine(this)
+MainComponent::MainComponent() :engine(this, true, true)
 {
     // specify the number of input and output channels that we want to open
 	setAudioChannels(0, 2);
