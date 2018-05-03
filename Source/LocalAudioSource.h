@@ -71,6 +71,10 @@ namespace SpatialAudio
 		int currentThetaInd;
 		bool isReady; // denotes if the audio files and images are properly loaded
 		bool inRange; // denotes the avatar is in range
+		bool firstBlockFlag; // if this is the first block since coming into range (or the first block in general- used to denote if gain needs to be ramped in)
+		Point<float> lastReadPosition; // optimization to remove extra buffer loads if nothing changes
+		float lastReadAngle;
+		void angleFilterHandling(Point<float> position, float angle);
 
 		void init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id);
 		juce::dsp::FIR::Filter<float> m_lFIR;

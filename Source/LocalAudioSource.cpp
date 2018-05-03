@@ -184,45 +184,44 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 
 bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float avatarAngle)
 {
-	//avatarAngle += 180;
-	m_distance = m_position.getDistanceFrom(avatarPosition);
-	// within bounds
-	if (m_distance <= m_radius)
+	if ((avatarPosition == lastReadPosition && avatarAngle == lastReadAngle) ||
+		(avatarPosition == lastReadPosition && !inRange))
 	{
-		float distRatio = m_distance / m_radius; // ranges from 0 to 1.  the closer it is (lower distanceRatio, we want a higher gain)
-		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
-		String m;
-		m_transportSource.setGain(m_gain);
-		float thetaDegrees = calculateAngle(avatarPosition, avatarAngle);
-		
-		// to handle rollover
-		int thetaInd = (int)round(thetaDegrees * ONEOVERFIFTEEN) % 24; 
-		if (thetaInd != currentThetaInd)
+		// nothings changed, or don't bother doing filter loads when not in range
+		return inRange;
+	}
+	else if (avatarPosition == lastReadPosition && inRange && avatarAngle != lastReadAngle)
+	{
+		// only angle has changed
+		angleFilterHandling(avatarPosition, avatarAngle);
+
+	}
+	else
+	{
+		m_distance = m_position.getDistanceFrom(avatarPosition);
+
+		// within bounds
+		if (m_distance <= m_radius)
 		{
-			if (thetaInd < 0)
-			{
-				// break here
-				DBG("Somehow calculated a bad index");
-				DBG(thetaInd);
-				thetaInd = 0;
-				if (currentThetaInd < 0) {}
-			}
-			currentThetaInd = thetaInd;
-			/*m << "Theta in radians is PI * " << (thetaRadians + degreesToRadians(avatarAngle)) / 3.14159;
-			Logger::getCurrentLogger()->writeToLog(m);
-			String m1;
-			m1 << "Current theta index is " << currentThetaInd << " , theta is " << thetaTemp; 
-			Logger::getCurrentLogger()->writeToLog(m1);*/
-			*(m_lFIR.coefficients) = dsp::FIR::Coefficients<float>(leftIR[currentThetaInd], (size_t) L_IRLEN);
-			*(m_rFIR.coefficients) = dsp::FIR::Coefficients<float>(rightIR[currentThetaInd], (size_t)R_IRLEN);
-
+			inRange = true;
+			// ranges from 0 to 1.  the closer it is (lower distanceRatio, we want a higher gain)
+			float distRatio = m_distance / m_radius;
+			m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
+			m_transportSource.setGain(m_gain);
+			angleFilterHandling(avatarPosition, avatarAngle);
 		}
-
-		return true;
+		else
+		{
+			inRange = false;
+			// reset ramp flag
+			firstBlockFlag = true;
+			m_gain = 0;
+		}
 	}
 
-	m_gain = 0;
-	return false;
+	lastReadAngle = avatarAngle;
+	lastReadPosition = avatarPosition;
+	return inRange;
 }
 
 void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, AudioSampleBuffer& rightBuffer, int numSamples)
@@ -233,10 +232,25 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 		{
 			m_transportSource.start();
 		}
+
+
 		// fill in one buffer from the transport source
 		AudioSourceChannelInfo info = AudioSourceChannelInfo(leftBuffer);
 		info.buffer->setSize(1, numSamples, false, false, true);
 		m_transportSource.getNextAudioBlock(info);
+		if (firstBlockFlag)
+		{
+			float stepSize = 1.0f / numSamples;
+			auto *ptr = leftBuffer.getWritePointer(0);
+			float scale = 0;
+			for (auto i = 0; i < numSamples; i++)
+			{
+				ptr[i] *= scale;
+				scale += stepSize;
+			}
+
+			firstBlockFlag = false;
+		}
 
 		// copy right buffer data before applying HRTF
 		rightBuffer.copyFrom(0, 0, leftBuffer.getReadPointer(0), numSamples);
@@ -308,11 +322,36 @@ float SpatialAudio::LocalAudioSource::calculateAngle(const juce::Point<float> ot
 
 	// juces angle calculation is clockwise. use counter clockwise to fix
 	auto thetaRadians =-1* translatedSource.getAngleToPoint(origin);
+
+	// +360 to make sure that we are in positive territory, +180 to create a phase shift to get the correct orientation
 	auto degrees = (360 + 180+(int)radiansToDegrees(thetaRadians)) %360;
-	String m;
+	/*String m;
 	m << "Degrees using rotation/translation is : " << degrees;
-	DBG(m);
+	DBG(m);*/
 	return degrees;
+}
+
+void SpatialAudio::LocalAudioSource::angleFilterHandling(Point<float> avatarPosition, float avatarAngle)
+{
+	float thetaDegrees = calculateAngle(avatarPosition, avatarAngle);
+
+	// to handle rollover
+	int thetaInd = (int)round(thetaDegrees * ONEOVERFIFTEEN) % 24;
+	if (thetaInd != currentThetaInd)
+	{
+		if (thetaInd < 0)
+		{
+			// break here
+			DBG("Somehow calculated a bad index");
+			DBG(thetaInd);
+			thetaInd = 0;
+			if (currentThetaInd < 0) {}
+		}
+		currentThetaInd = thetaInd;
+		// copy in coefficients from a predefined header
+		*(m_lFIR.coefficients) = dsp::FIR::Coefficients<float>(leftIR[currentThetaInd], (size_t)L_IRLEN);
+		*(m_rFIR.coefficients) = dsp::FIR::Coefficients<float>(rightIR[currentThetaInd], (size_t)R_IRLEN);
+	}
 }
 
 void SpatialAudio::LocalAudioSource::init(
@@ -323,6 +362,9 @@ void SpatialAudio::LocalAudioSource::init(
 	float radius, 
 	int id)
 {
+	firstBlockFlag = true;
+	lastReadAngle = -1;
+	lastReadPosition = Point<float>(0, 0);
 	m_id = (id);
 	m_audioFileName = (audioFileName); 
 	m_imageFileName = (imageFileName);
