@@ -172,11 +172,14 @@ void SpatialAudio::SpatialAudioEngine::paint(Graphics & g)
 			{
 				// shift location based on the radius
 				auto basePosition = val->position();
-				float newX = basePosition.getX() - val->getRadius() / 2;
-				float newY = basePosition.getY() - val->getRadius() / 2;
+				float newX = basePosition.getX() -val->getRadius() / 2;
+				float newY = basePosition.getY() -val->getRadius() / 2;
 				auto test = val->imageComponent();
 				test->setAlpha(1 - val->getRadius());
 				test->setBoundsRelative(newX, newY, val->getRadius(), val->getRadius());
+				//test->setBoundsRelative(newX, newY, 0.05f, 0.05f);
+				
+
 			}
 			else
 			{

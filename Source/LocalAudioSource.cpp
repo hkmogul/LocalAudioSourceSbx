@@ -184,6 +184,7 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 
 bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float avatarAngle)
 {
+	//avatarAngle += 180;
 	m_distance = m_position.getDistanceFrom(avatarPosition);
 	// within bounds
 	if (m_distance <= m_radius)
@@ -192,38 +193,17 @@ bool LocalAudioSource::objectInRange(Point<float> avatarPosition, float avatarAn
 		m_gain = distRatio == 0 ? 1 : 1 - pow(distRatio, 2);
 		String m;
 		m_transportSource.setGain(m_gain);
-
-		float thetaRadians = avatarPosition.getAngleToPoint(m_position);
+		float thetaDegrees = calculateAngle(avatarPosition, avatarAngle);
 		
-		float thetaDegrees = radiansToDegrees(thetaRadians) + 270;
-		if (thetaDegrees < 0)
-		{
-			thetaDegrees = 360 + thetaDegrees;
-		}
-
-		// use quadrant of avatar relative to source
-		// Quadrant I 
-		if (avatarPosition.getX() >= m_position.getX() && avatarPosition.getY() <= m_position.getY())
-		{
-			// do nothing
-		}
-		// quadrant II or IV
-		else if ((avatarPosition.getX() <= m_position.getX() && avatarPosition.getY() < m_position.getY()) ||
-			avatarPosition.getX() >= m_position.getX() && avatarPosition.getY() > m_position.getY())
-		{
-			thetaDegrees = thetaDegrees + 180;
-		}
-	
-
-		int thetaTemp = ((int)(thetaDegrees + avatarAngle) % 360);
 		// to handle rollover
-		int thetaInd = (int)round(thetaTemp * ONEOVERFIFTEEN) % 24; 
+		int thetaInd = (int)round(thetaDegrees * ONEOVERFIFTEEN) % 24; 
 		if (thetaInd != currentThetaInd)
 		{
 			if (thetaInd < 0)
 			{
 				// break here
 				DBG("Somehow calculated a bad index");
+				DBG(thetaInd);
 				thetaInd = 0;
 				if (currentThetaInd < 0) {}
 			}
@@ -316,6 +296,23 @@ void SpatialAudio::LocalAudioSource::prepareFilters(double samplingRate, double 
 	m_transportSource.prepareToPlay((int)samplesPerBlockExpected, (int)samplingRate);
 
 	m_transportSource.start();
+}
+
+float SpatialAudio::LocalAudioSource::calculateAngle(const juce::Point<float> other, float playerAngle) const
+{
+	// create a point translated about the other
+	auto translatedSource = m_position.translated(-1 * other.getX(),-1 * other.getY());
+
+	// rotate translated source about origin (clockwise, so multiply our offset by -1)
+	translatedSource = translatedSource.rotatedAboutOrigin(degreesToRadians(-1 * playerAngle));
+
+	// juces angle calculation is clockwise. use counter clockwise to fix
+	auto thetaRadians =-1* translatedSource.getAngleToPoint(origin);
+	auto degrees = (360 + 180+(int)radiansToDegrees(thetaRadians)) %360;
+	String m;
+	m << "Degrees using rotation/translation is : " << degrees;
+	DBG(m);
+	return degrees;
 }
 
 void SpatialAudio::LocalAudioSource::init(

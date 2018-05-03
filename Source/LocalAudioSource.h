@@ -4,6 +4,8 @@
 #include <map>
 namespace SpatialAudio
 {
+	// have a constant reference for the origin
+	static const juce::Point<float> origin(0, 0);
 	/// Class to represent an audio source in space
 
 	class LocalAudioSource
@@ -49,6 +51,7 @@ namespace SpatialAudio
 		LocalAudioSource(LocalAudioSource& other);
 		void prepareFilters(double samplingRate, double samplesPerBlockExpected);
 		float getRadius() const { return m_radius; };
+		float calculateAngle(const juce::Point<float> other, float playerAngle) const;
 
 	private:
 		juce::Image m_img;
