@@ -37,7 +37,8 @@
             "ImageFile": "cicada.jpg",
             "XPosition": 0.8,
             "YPosition": 0.9,
-            "Radius": 0.6
+            "Radius": 0.6,
+            "BypassHRTF": 1
         },
         {
             "_comment": "Represents sounds from a wolf howling",

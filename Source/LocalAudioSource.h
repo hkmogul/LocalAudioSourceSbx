@@ -19,7 +19,7 @@ namespace SpatialAudio
 		LocalAudioSource(std::map<juce::String, juce::String> propertyDict, juce::String baseDir = "");
 
 		// constructor using the raw properties
-		LocalAudioSource(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id, juce::String baseDir = "");
+		LocalAudioSource(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id, juce::String baseDir = "", bool shouldBypass=false);
 
 		// constructor using JsonCpp value
 		LocalAudioSource(const juce::var val, juce::String baseDir = "");
@@ -76,8 +76,9 @@ namespace SpatialAudio
 		float lastReadAngle;
 		void angleFilterHandling(Point<float> position, float angle);
 
-		void init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id);
+		void init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id, bool shouldBypass = false);
 		juce::dsp::FIR::Filter<float> m_lFIR;
 		juce::dsp::FIR::Filter<float> m_rFIR;
+		bool shouldBypassHRTF;
 	};
 }

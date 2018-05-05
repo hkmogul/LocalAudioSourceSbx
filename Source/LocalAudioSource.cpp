@@ -11,6 +11,7 @@ const char* L_XPOSITIONPROP = "XPosition";
 const char* L_YPOSITIONPROP = "YPosition";
 const char* L_RADIUSPROP = "Radius";
 const char* L_ROOTFOLDERPROP = "RootFolder";
+const char* L_BYPASSHRTFPROP = "BypassHRTF";
 using namespace juce;
 using namespace std;
 using namespace SpatialAudio;
@@ -31,6 +32,7 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 	float x = -1.0;
 	float y = -1.0;
 	float r = -1.0;
+	bool bypass = false;
 	// find root folder to prepend with first
 	if (propertyDict.find(L_ROOTFOLDERPROP) != propertyDict.end())
 	{
@@ -82,6 +84,11 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 		y = propertyDict[L_YPOSITIONPROP].getFloatValue();
 	}
 
+	if (propertyDict.find(L_BYPASSHRTFPROP) != propertyDict.end())
+	{
+		bypass = propertyDict[L_BYPASSHRTFPROP].getIntValue() > 0 ? true : false;
+	}
+
 	// necessary components are xposition yposition and audio file names.  check if these are nonnull before passing to explicit constructor
 	if (aFile.isEmpty() || x < 0 || y < 0)
 	{
@@ -91,7 +98,7 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 	else
 	{
 		// use explicit constructor
-		init(aFile, iFile, x, y, r, global_id++);
+		init(aFile, iFile, x, y, r, global_id++, bypass);
 	}
 
 }
@@ -103,7 +110,8 @@ LocalAudioSource::LocalAudioSource(
 	float yPos, 
 	float radius, 
 	int id,
-	juce::String baseDir) 
+	juce::String baseDir,
+	bool shouldBypass) 
 {
 	init(audioFileName, imageFileName, xPos, yPos, radius, id);
 }
@@ -116,6 +124,7 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 	float x = -1.0;
 	float y = -1.0;
 	float r = -1.0;
+	bool bypass = false;
 	var invalidVar;
 	if (val[L_ROOTFOLDERPROP] != invalidVar)
 	{
@@ -168,6 +177,11 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 		r = val[L_RADIUSPROP];
 	}
 
+	if (val[L_BYPASSHRTFPROP] != invalidVar)
+	{
+		bypass = (int)val[L_BYPASSHRTFPROP] > 0 ? true : false;
+	}
+
 	// necessary components are xposition yposition and audio file names.  check if these are nonnull before passing to explicit constructor
 	if (aFile.isEmpty() || x < 0 || y < 0)
 	{
@@ -177,7 +191,7 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 	else
 	{
 		// use explicit constructor
-		init(aFile, iFile, x, y, r, global_id++);
+		init(aFile, iFile, x, y, r, global_id++, bypass);
 	}
 }
 
@@ -254,16 +268,24 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 
 		// copy right buffer data before applying HRTF
 		rightBuffer.copyFrom(0, 0, leftBuffer.getReadPointer(0), numSamples);
-		// turn these into blocks
-		dsp::AudioBlock<float> lBufBlock(leftBuffer);
-		dsp::AudioBlock<float> rBufBlock(rightBuffer);
+		if (!shouldBypassHRTF)
+		{
+			// turn these into blocks
+			dsp::AudioBlock<float> lBufBlock(leftBuffer);
+			dsp::AudioBlock<float> rBufBlock(rightBuffer);
 
-		// turn the blocks into destructive/in place processing contexts
-		dsp::ProcessContextReplacing<float> lContext(lBufBlock);
-		dsp::ProcessContextReplacing<float> rContext(rBufBlock);
+			// turn the blocks into destructive/in place processing contexts
+			dsp::ProcessContextReplacing<float> lContext(lBufBlock);
+			dsp::ProcessContextReplacing<float> rContext(rBufBlock);
 
-		m_lFIR.process(lContext);
-		m_rFIR.process(rContext);
+			m_lFIR.process(lContext);
+			m_rFIR.process(rContext);
+		}
+		else
+		{
+			DBG("BYPASS WORKED");
+		}
+
 	}
 	else if (isReady)
 	{
@@ -337,7 +359,8 @@ void SpatialAudio::LocalAudioSource::angleFilterHandling(Point<float> avatarPosi
 
 	// to handle rollover
 	int thetaInd = (int)round(thetaDegrees * ONEOVERFIFTEEN) % 24;
-	if (thetaInd != currentThetaInd)
+	// dont bother updating the filter if its not going to be used
+	if (thetaInd != currentThetaInd && !shouldBypassHRTF)
 	{
 		if (thetaInd < 0)
 		{
@@ -360,8 +383,10 @@ void SpatialAudio::LocalAudioSource::init(
 	float xPos, 
 	float yPos, 
 	float radius, 
-	int id)
+	int id,
+	bool shouldBypass)
 {
+	shouldBypassHRTF = shouldBypass;
 	firstBlockFlag = true;
 	lastReadAngle = -1;
 	lastReadPosition = Point<float>(0, 0);
