@@ -19,7 +19,7 @@ namespace SpatialAudio
 		LocalAudioSource(std::map<juce::String, juce::String> propertyDict, juce::String baseDir = "");
 
 		// constructor using the raw properties
-		LocalAudioSource(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id, juce::String baseDir = "", bool shouldBypass=false);
+		LocalAudioSource(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id, juce::String baseDir = "", bool shouldBypass=false, bool shouldRestart = false);
 
 		// constructor using JsonCpp value
 		LocalAudioSource(const juce::var val, juce::String baseDir = "");
@@ -72,11 +72,12 @@ namespace SpatialAudio
 		bool isReady; // denotes if the audio files and images are properly loaded
 		bool inRange; // denotes the avatar is in range
 		bool firstBlockFlag; // if this is the first block since coming into range (or the first block in general- used to denote if gain needs to be ramped in)
+		bool shouldRestartAudio; // if the source should restart playback when in range
 		Point<float> lastReadPosition; // optimization to remove extra buffer loads if nothing changes
 		float lastReadAngle;
 		void angleFilterHandling(Point<float> position, float angle);
 
-		void init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id, bool shouldBypass = false);
+		void init(juce::String audioFileName, juce::String imageFileName, float xPos, float yPos, float radius, int id, bool shouldBypass = false, bool shouldRestart = false);
 		juce::dsp::FIR::Filter<float> m_lFIR;
 		juce::dsp::FIR::Filter<float> m_rFIR;
 		bool shouldBypassHRTF;

@@ -3,13 +3,15 @@
     "Sources":
     [
         {
-            "_comment": "Represents a waterfall",
+            "_comment": "Represents a single source",
             "RootFolder": "Assets",
             "AudioFile" : "defaultSong.mp3",
             "ImageFile": "defaultImage.jpg",
             "XPosition": 0.5,
             "YPosition": 0.5,
-            "Radius": 0.3
+            "Radius": 0.3,
+            "BypassHRTF": 0,
+            "ShouldRestart": 0
         }
     ]
 }

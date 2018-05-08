@@ -12,6 +12,7 @@ const char* L_YPOSITIONPROP = "YPosition";
 const char* L_RADIUSPROP = "Radius";
 const char* L_ROOTFOLDERPROP = "RootFolder";
 const char* L_BYPASSHRTFPROP = "BypassHRTF";
+const char* L_RESTARTAUDIOPROP = "ShouldRestart";
 using namespace juce;
 using namespace std;
 using namespace SpatialAudio;
@@ -33,6 +34,7 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 	float y = -1.0;
 	float r = -1.0;
 	bool bypass = false;
+	bool restart = false;
 	// find root folder to prepend with first
 	if (propertyDict.find(L_ROOTFOLDERPROP) != propertyDict.end())
 	{
@@ -89,6 +91,13 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 		bypass = propertyDict[L_BYPASSHRTFPROP].getIntValue() > 0 ? true : false;
 	}
 
+
+	if (propertyDict.find(L_RESTARTAUDIOPROP) != propertyDict.end())
+	{
+		restart = propertyDict[L_RESTARTAUDIOPROP].getIntValue() > 0 ? true : false;
+	}
+
+
 	// necessary components are xposition yposition and audio file names.  check if these are nonnull before passing to explicit constructor
 	if (aFile.isEmpty() || x < 0 || y < 0)
 	{
@@ -98,7 +107,7 @@ LocalAudioSource::LocalAudioSource(std::map<juce::String, juce::String> property
 	else
 	{
 		// use explicit constructor
-		init(aFile, iFile, x, y, r, global_id++, bypass);
+		init(aFile, iFile, x, y, r, global_id++, bypass, restart);
 	}
 
 }
@@ -111,9 +120,10 @@ LocalAudioSource::LocalAudioSource(
 	float radius, 
 	int id,
 	juce::String baseDir,
-	bool shouldBypass) 
+	bool shouldBypass,
+	bool shouldRestart) 
 {
-	init(audioFileName, imageFileName, xPos, yPos, radius, id);
+	init(audioFileName, imageFileName, xPos, yPos, radius, id, shouldBypass, shouldRestart);
 }
 
 LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
@@ -125,6 +135,7 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 	float y = -1.0;
 	float r = -1.0;
 	bool bypass = false;
+	bool restart = false;
 	var invalidVar;
 	if (val[L_ROOTFOLDERPROP] != invalidVar)
 	{
@@ -182,6 +193,11 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 		bypass = (int)val[L_BYPASSHRTFPROP] > 0 ? true : false;
 	}
 
+	if (val[L_RESTARTAUDIOPROP] != invalidVar)
+	{
+		restart = (int)val[L_RESTARTAUDIOPROP] > 0 ? true : false;
+	}
+
 	// necessary components are xposition yposition and audio file names.  check if these are nonnull before passing to explicit constructor
 	if (aFile.isEmpty() || x < 0 || y < 0)
 	{
@@ -191,7 +207,7 @@ LocalAudioSource::LocalAudioSource(const juce::var val, juce::String baseDir)
 	else
 	{
 		// use explicit constructor
-		init(aFile, iFile, x, y, r, global_id++, bypass);
+		init(aFile, iFile, x, y, r, global_id++, bypass, restart);
 	}
 }
 
@@ -247,7 +263,10 @@ void LocalAudioSource::populateNextAudioBlock(AudioSampleBuffer& leftBuffer, Aud
 			m_transportSource.start();
 		}
 
-
+		if (firstBlockFlag && shouldRestartAudio)
+		{
+			m_transportSource.setPosition(0.0);
+		}
 		// fill in one buffer from the transport source
 		AudioSourceChannelInfo info = AudioSourceChannelInfo(leftBuffer);
 		info.buffer->setSize(1, numSamples, false, false, true);
@@ -384,9 +403,11 @@ void SpatialAudio::LocalAudioSource::init(
 	float yPos, 
 	float radius, 
 	int id,
-	bool shouldBypass)
+	bool shouldBypass,
+	bool shouldRestart)
 {
 	shouldBypassHRTF = shouldBypass;
+	shouldRestartAudio = shouldRestart;
 	firstBlockFlag = true;
 	lastReadAngle = -1;
 	lastReadPosition = Point<float>(0, 0);
